@@ -1,0 +1,65 @@
+menu:
+  Home: /
+  About: /about
+  Feedback: /feedback
+#  Archives: /archives
+
+widgets:
+#- search
+- about_me
+#- category
+- tag
+- recent_posts
+- duoshuo_recent_comments
+- links
+
+excerpt_link: 全文
+
+twitter:
+  username:
+  show_replies: false
+  tweet_count: 5
+
+addthis:
+#  enable: true
+  pubid:
+  facebook: true
+  twitter: true
+  google: true
+  pinterest: true
+
+fancybox: true
+
+google_analytics:
+
+#rss: http://feeds.feedburner.com/JimLiu
+rss:
+
+links:
+- name: Dora Blog
+  link: http://diaorui.net/
+- name: ETPHOTOS的影像博客
+  link: http://blog.sina.com.cn/s/blog_66783fc50101bzjy.html?from=jimlius_blog
+- name: licstar的博客
+  link: http://licstar.net/?from=jimlius_blog
+- name: Odin的自我修养
+  link: http://odinliu.com/?from=jimlius_blog
+- name: Lijia Yu's Website
+  link: http://yulijia.net/cn/
+- name: 持之以恒
+  link: http://www.xperseverance.net/
+- name: Joanna's coding blog
+  link: http://code.wileam.com/?from=jimlius_blog
+#- name: 陈根的博客
+#  link: http://www.chengen.me/?utm_source=jimliu&utm_medium=friend
+
+about_me:
+  title: ABOUT JIM
+  avatar: /uploads/2012/03/Pig.180x180-150x150.jpg
+  texts:
+  - <a href="/about">刘骥</a>
+  - 微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a>
+  - 知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a>
+  - 旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a>
+
+duoshuo: jimliu-net
