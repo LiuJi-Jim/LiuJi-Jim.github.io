@@ -1,6 +1,7 @@
 #!/bin/bash
 
-hexo clean && hexo generate && hexo deploy
+hexo clean
+hexo generate --deploy
 
 DATETIME=`date`
 cd ../blog4daocloud && echo $DATETIME >> buildtime && git add --all . && git commit -m "regular build\n\nbuild on $DATETIME" && git push origin master
