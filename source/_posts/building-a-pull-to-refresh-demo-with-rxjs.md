@@ -33,11 +33,15 @@ Pull to Refresh是一个流行到甚至让人开始觉得有些过时了的交�
 
 接下来的内容中将会实现一个名为`pull-to-refresh`的`directive`，在Vue中将其应用在指定的元素上，并指定相关参数，响应对应的回调函数和事件，则可以复用“下拉刷新”的功能。
 
-使用Vue并非是Pull-to-Refresh本身、或者是RxJS依赖Vue，这只是做Demo的一个选择。同样，实现为`directive`也只是一个选择，将其实现位`component`或者`mixin`都是完全可行的。
+使用Vue并非是Pull-to-Refresh本身、或者是RxJS依赖Vue，这只是做Demo的一个选择。同样，实现为`directive`也只是一个选择，将其实现为`component`或者`mixin`都是完全可行的。
 
 # 页面
 
-首先构建一个如图所示的页面框架，其结构为
+首先构建一个如图所示的页面框架
+
+<img src="/uploads/2016/pull-to-refresh.png" style="width:320px; border:1px solid #ccc;" />
+
+其结构为
 
 ```
 #app
