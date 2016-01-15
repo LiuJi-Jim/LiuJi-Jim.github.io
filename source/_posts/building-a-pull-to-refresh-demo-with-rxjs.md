@@ -6,7 +6,7 @@ date: 2016-1-15 23:33:33
 
 本文将用一个_Pull-to-Refresh_的例子来介绍如何使用RxJS进行高度抽象的复杂DOM事件处理。
 
-文中所开发的完整demo代码可以在[github](https://github.com/LiuJi-Jim/rxjs-pull-to-refresh-demo)找到，在线demo在[这里](http://liuji-jim.github.io/rxjs-pull-to-refresh-demo)。
+文中所开发的完整demo代码可以在[github](https://github.com/LiuJi-Jim/rxjs-pull-to-refresh-demo)找到，在线demo在[这里](http://liuji-jim.github.io/rxjs-pull-to-refresh-demo)（需要使用手机或开启touch模拟，未作浏览器兼容）。
 
 这个程序将会用到的工具：
 
