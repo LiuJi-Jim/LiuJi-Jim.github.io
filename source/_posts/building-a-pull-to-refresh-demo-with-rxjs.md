@@ -39,7 +39,7 @@ Pull to Refresh是一个流行到甚至让人开始觉得有些过时了的交�
 
 首先构建一个如图所示的页面框架
 
-<img src="/uploads/2016/pull-to-refresh.png" style="width:320px; border:1px solid #ccc;" />
+<img src="/uploads/2016/pull-to-refresh.jpg" style="border:1px solid #ccc;" />
 
 其结构为
 
