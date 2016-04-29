@@ -65,7 +65,7 @@ Vue 2不再是Browser-Only的，所以加入了`render`和`runtime`的概念。
 </div>
 
 <script>
-  var modal = new Vue({
+  var counterApp = new Vue({
     el: '#counter-app',
     data: {
       count: 0
@@ -191,7 +191,7 @@ Vue.prototype.__patch__ = createPatchFunction({ nodeOps, modules })
 * 将元素的attributes中不会变化的那部分提取出来，在对比两个v-node的时候，直接跳过这部分字段。
 * 将v-tree中纯静态的sub-tree提取出来，在对比两棵v-tree的时候，直接跳过这棵子树。
 
-其中第二点，在遇到static sub-tree的时候，会命中`oldNode === newNode`的全等逻辑，可以直接跳过整棵子树。不过我发现一些小问题，一个是对于`<button @click="count++">喜+1</button>`这种v-dom，我不太确定它应该被当做是纯静态的还是动态的，这个我还没想明白，暂时就先不说了，至少在目前的optimizer中，还是把它当动态的。另一个问题是对于模板中的各种HTML注释和换行所带来的一些空白的TextNode，明显应该是静态的，但却被当做了“动态”节点——之所以加引号是因为这部分节点的确是不会变，但没有提取成static node，所以每次`_render`的时候它还是会被render成一个新的v-node，这样就命中不了全等逻辑，然后对它再进行一次比较（尽管是代价非常低的一次比较）。
+其中第二点，在遇到static sub-tree的时候，会命中`oldNode === newNode`的全等逻辑，可以直接跳过整棵子树。不过我发现一些小问题，一个是对于`<button @click="count++">喜+1</button>`这种v-dom，我不太确定它应该被当做是纯静态的还是动态的，这个我还没想明白，暂时就先不说了，至少在目前的optimizer中，还是把它当动态的。另一个问题是对于模板中的各种HTML注释和换行所带来的一些空白的TextNode，明显应该是静态的，但却被当做了“动态”节点——之所以加引号是因为这部分节点的确是不会变，但没有提取成static node，所以每次`_render`的时候它还是会被render成一个新的v-node，这样就命中不了全等逻辑，然后对它再进行一次比较（尽管是代价非常低的一次比较）。（关于这个问题的例子可以看[这个Gist](https://gist.github.com/LiuJi-Jim/e12b9df4c5bb5022cbe8f9308287e4e7)）
 
 另一个问题是，如果使用服务端渲染，初始化会将v-dom直接`mount`到服务端输出的dom树上。但在客户端渲染的情况下，直接在浏览器里进行模板编译的话，首次输出会生成一个新的dom节点并`mount`到它上面，原版的那个用来当模板的dom节点则没用了。这是个浪费，但可以理解，第一是因为模板里有很多最后不会输出的节点（比如v-if/v-else中未命中的分支），另一个是到了生产环境下应该大多数人都会选择模板预编译吧。
 
