@@ -91,12 +91,18 @@ disqus_shortname:
 theme: light
 exclude_generator:
 
-plugins:
-- hexo-generator-feed
+# plugins:
+# - hexo-generator-feed
+# 
+# feed:
+#   type: atom
+#   path: atom.xml
+#   limit: 20
+#   hub:
 
 # Deployment
 ## Docs: http://zespia.tw/hexo/docs/deploy.html
 deploy:
   type: git
-  repository: https://github.com/LiuJi-Jim/LiuJi-Jim.github.io.git
+  repo: https://github.com/LiuJi-Jim/LiuJi-Jim.github.io.git
   branch: master
