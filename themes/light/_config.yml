@@ -38,16 +38,18 @@ rss:
 links:
 - name: Dora Blog
   link: http://diaorui.net/
-- name: ETPHOTOS的影像博客
-  link: http://blog.sina.com.cn/s/blog_66783fc50101bzjy.html?from=jimlius_blog
+- name: 相机笔记
+  link: http://etphotos.cn/?from=jimlius_blog
 - name: licstar的博客
   link: http://licstar.net/?from=jimlius_blog
 - name: Odin的自我修养
   link: http://odinliu.com/?from=jimlius_blog
 - name: Lijia Yu's Website
-  link: http://yulijia.net/cn/
+  link: http://yulijia.net/cn/?from=jimlius_blog
 - name: 持之以恒
-  link: http://www.xperseverance.net/
+  link: http://www.xperseverance.net/?from=jimlius_blog
+- name: 灵魂屋
+  link: http://www.yangshaohang.com/?from=jimlius_blog
 - name: Joanna's coding blog
   link: http://code.wileam.com/?from=jimlius_blog
 #- name: 陈根的博客
