@@ -85,7 +85,7 @@ class Queryable {
   }
 }
 
-Array.prototype.asQuerable = function() {
+Array.prototype.asQueryable = function() {
   return new Queryable(this)
 }
 ```
