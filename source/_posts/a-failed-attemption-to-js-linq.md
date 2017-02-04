@@ -69,7 +69,7 @@ ES6中有了`yield`和Generator Function（不熟悉的可以先回顾一下我�
 
 也就是说，ES6已经有了C#那样优雅地实现LINQ的基础设施，我们就来实现一个简单的试试。
 
-## IQuerable
+## IQueryable
 
 首先我们像C#那样实现一个`IQueryable`类，并且它通过`Symbol.iterator`能够支持被`for of`遍历
 
@@ -90,7 +90,7 @@ Array.prototype.asQueryable = function() {
 }
 ```
 
-由于我们是“面向接口编程”的，这里我们并不关心`new Queryable(xxx)`传入的是一个`Array`、一个`Generator`还是一个`Querable`，反正它们都可以被`for of`遍历。
+由于我们是“面向接口编程”的，这里我们并不关心`new Queryable(xxx)`传入的是一个`Array`、一个`Generator`还是一个`Queryable`，反正它们都可以被`for of`遍历。
 
 然后为了方便，在`Array.prototype`上挂了一个方法，别嫌脏，娱乐而已。
 
