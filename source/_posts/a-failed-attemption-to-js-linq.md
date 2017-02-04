@@ -16,7 +16,7 @@ C# 3.0引入了引以为豪的LINQ（Language INtergrated Query），可以用�
 
 # C#中的LINQ
 
-C#中的LINQ是通过`yield`来避免重复遍历的，抽象的说，`Where`(对应filter)、`Select`(对应map)这类的方法调用的时候，都只会把操作“暂存”起来，直到调用了`ToArray`、`Agreegate`(对应reduce)之类的方法，才会“驱动”它去进行遍历。
+C#中的LINQ是通过`yield`来避免重复遍历的，抽象的说，`Where`(对应filter)、`Select`(对应map)这类的方法调用的时候，都只会把操作“暂存”起来，直到调用了`ToArray`、`Aggregate`(对应reduce)之类的方法，才会“驱动”它去进行遍历。
 
 举一个简单的例子
 
@@ -24,11 +24,11 @@ C#中的LINQ是通过`yield`来避免重复遍历的，抽象的说，`Where`(�
 var array = new []{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 var sum = array.Where(n => n % 2 === 0)
                .Select(n => n + 3)
-               .Agreegate((sum, n) => sum + n, 0);
+               .Aggregate((sum, n) => sum + n, 0);
 // 代码不一定能编译，我是裸写的
 ```
 
-上面是一个最基本的`filter`/`map`/`reduce`的过程（下文也会继续用这个例子），只有在`Agreegate`调用的时候，才会对数组进行遍历，而`Where`和`Select`只是一些类型为`IQueryable<T>`的中间过程。
+上面是一个最基本的`filter`/`map`/`reduce`的过程（下文也会继续用这个例子），只有在`Aggregate`调用的时候，才会对数组进行遍历，而`Where`和`Select`只是一些类型为`IQueryable<T>`的中间过程。
 
 C#中的LINQ得益于C#的`yield`关键字，配合First-Class-Function可以不费吹灰之力地构建`IEnumerable<T>`，而C#中的`foreach`提供了对`IEnumerable<T>`的语法糖，这样就可以很自然的对LINQ的中间结果进行二次加工，而不需要繁琐地手工调用`.Next()`。
 
