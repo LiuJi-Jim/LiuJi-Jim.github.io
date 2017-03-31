@@ -6,7 +6,7 @@ tags:
 
 # 前言
 
-JavaScript 2015中引入了Generator Function（相关内容可以参考前作[ES6 generator函数与co一瞥](/2014/11/28/a-brief-look-at-es6-generator-function/)与[ES6 generator函数与co再一瞥](/2015/01/18/more-about-es6-generator-function/)），并且在加入了`Symbol.terator`之后，使得构造拥有自定义迭代器的集合变得相当容易（可以参考前作[在JavaScript中实现LINQ——一次“失败”的尝试](/2017/02/04/a-failed-attemption-to-js-linq/)）。
+JavaScript 2015中引入了Generator Function（相关内容可以参考前作[ES6 generator函数与co一瞥](/2014/11/28/a-brief-look-at-es6-generator-function/)与[ES6 generator函数与co再一瞥](/2015/01/18/more-about-es6-generator-function/)），并且在加入了`Symbol.iterator`之后，使得构造拥有自定义迭代器的集合变得相当容易（可以参考前作[在JavaScript中实现LINQ——一次“失败”的尝试](/2017/02/04/a-failed-attemption-to-js-linq/)）。
 
 前几天在群里[@徐叔](http://weibo.com/sharpmaster)提出了这样一个问题：
 
