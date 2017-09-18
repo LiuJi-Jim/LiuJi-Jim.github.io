@@ -1,7 +1,7 @@
 menu:
   Home: /
   About: /about
-  Feedback: /feedback
+#  Feedback: /feedback
 #  Archives: /archives
 
 widgets:
