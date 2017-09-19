@@ -7,7 +7,9 @@
     var input = $('input')
     var preview = $('preview')
     var ctx = cvs.getContext('2d')
-    var defaultText = '社、社会'
+    var defaultText = document.title
+
+    preview.crossOrigin = "anonymous"
 
     var template = document.createElement('img')
     template.onload = function() {
@@ -20,15 +22,15 @@
 
     function drawText(txt) {
         drawTemplate()
-        ctx.font = 'bold 32px sans-serif'
+        ctx.font = 'bold 16px sans-serif'
         ctx.textAlign = 'center'
         ctx.fillStyle = '#000'
-        ctx.fillText(txt, cvs.width / 2, cvs.height - 10)
+        ctx.fillText(txt, cvs.width / 2, cvs.height - 5)
 
         preview.src = cvs.toDataURL('image/png')
     }
     
-    template.src = './shehui.jpg' // run
+    template.src = preview.getAttribute('src') // run
     input.value = defaultText
 
     btn.addEventListener('click', function(e) {
