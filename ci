@@ -2,7 +2,7 @@
 
 DATETIME=`date`
 VERSION=`date +%s`
-hexo clean && hexo generate && hexo deploy
+npm run clean && npm run generate && npm run deploy
 
 #git add --all . && git commit -m "regular build\n\nbuild on $DATETIME" && git push origin master
 

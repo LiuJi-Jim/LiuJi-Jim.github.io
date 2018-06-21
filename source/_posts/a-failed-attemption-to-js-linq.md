@@ -1,6 +1,6 @@
 title: "在JavaScript中实现LINQ——一次“失败”的尝试"
 date: 2017-2-4 23:33:33
-tags: 
+tags:
 - 编程
 ---
 
@@ -203,7 +203,6 @@ Queryable.prototype.toArray = function() {
 我们用[benchmark](https://www.npmjs.com/package/benchmark)模块对上述代码进行性能测试，并且引入两个对照组，不多说了，直接看代码吧
 
 ```
-
 function useRawLoop() {
   let result = 0
   for (let i = 0; i < arr.length; ++i) {

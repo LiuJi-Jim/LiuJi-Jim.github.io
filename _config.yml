@@ -9,10 +9,11 @@ description:
 author: Jim Liu
 email:
 language: zh-CN
+timezone: Asia/Shanghai
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://jimliu.net
+url: https://jimliu.net
 root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:
@@ -49,6 +50,17 @@ highlight:
   line_number: true
   auto_detect: true
   tab_replace:
+
+marked:
+  gfm: true
+  pedantic: false
+  sanitize: false
+  tables: true
+  breaks: true
+  smartLists: true
+  smartypants: true
+  modifyAnchors: ''
+  autolink: true
 
 # Category & Tag
 default_category: 未分类
@@ -94,7 +106,7 @@ exclude_generator:
 
 # plugins:
 # - hexo-generator-feed
-# 
+#
 # feed:
 #   type: atom
 #   path: atom.xml
@@ -107,3 +119,8 @@ deploy:
   type: git
   repo: https://github.com/LiuJi-Jim/LiuJi-Jim.github.io.git
   branch: master
+
+# media tag plugin
+owl:
+  css: default
+  file: css/owl.css
