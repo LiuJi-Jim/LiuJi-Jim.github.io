@@ -1,0 +1,23 @@
+digraph Vector3F_GetterSetter {
+    node [shape=record, fontname="Monaco"];
+    edge [fontname="Monaco"];
+
+    rankdir=TB;
+
+    class [label="{class Vector3F \{\l|<view>&nbsp;&nbsp;&nbsp;&nbsp;_view\l|<x>&nbsp;&nbsp;&nbsp;&nbsp;x\l|<y>&nbsp;&nbsp;&nbsp;&nbsp;y\l|<z>&nbsp;&nbsp;&nbsp;&nbsp;z\l|\}\l}"];
+
+    dataview [label="{DataView}"];
+
+    arraybuffer [label="{arraybuffer}"];
+
+    memory [label="{memory (24 bytes)|<0>0|...|<8>8|...|<16>16|...}"];
+
+
+    class:view -> dataview -> arraybuffer;
+    class:x -> dataview;
+    class:y -> dataview;
+    class:z -> dataview;
+    arraybuffer -> memory:0;
+    arraybuffer -> memory:8;
+    arraybuffer -> memory:16;
+}

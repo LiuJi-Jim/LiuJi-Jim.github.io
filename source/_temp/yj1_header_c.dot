@@ -1,0 +1,43 @@
+digraph yj1_header {
+    node [shape=record, fontname="Monaco"];
+    edge [fontname="Monaco"];
+
+    rankdir=TB;
+
+    header [shape="plaintext", label=<<table border="0" cellborder="1" cellspacing="0">
+        <tr>
+            <td align="left" width="340">struct YJ_1_FILEHEADER {</td>
+        </tr>
+        <tr>
+            <td align="left" port="signature">&nbsp;&nbsp;&nbsp;&nbsp;unsigned int&nbsp;&nbsp;&nbsp;Signature</td>
+        </tr>
+        <tr>
+            <td align="left" port="ucl">&nbsp;&nbsp;&nbsp;&nbsp;unsigned int&nbsp;&nbsp;&nbsp;UncompressedLength</td>
+        </tr>
+        <tr>
+            <td align="left" port="cl">&nbsp;&nbsp;&nbsp;&nbsp;unsigned int&nbsp;&nbsp;&nbsp;CompressedLength</td>
+        </tr>
+        <tr>
+            <td align="left" port="bc">&nbsp;&nbsp;&nbsp;&nbsp;unsigned short&nbsp;BlockCount</td>
+        </tr>
+        <tr>
+            <td align="left" port="un">&nbsp;&nbsp;&nbsp;&nbsp;unsigned char&nbsp;&nbsp;Unknown</td>
+        </tr>
+        <tr>
+            <td align="left" port="htl">&nbsp;&nbsp;&nbsp;&nbsp;unsigned char&nbsp;&nbsp;HuffmanTreeLength</td>
+        </tr>
+        <tr>
+            <td align="left">}</td>
+        </tr>
+
+    </table>>];
+
+    memory [label="{memory (16 bytes)|<0>0|...|<4>4|...|<8>8|...|<12>12|...|<14>14|<15>15}"];
+
+    header:signature -> memory:0;
+    header:ucl -> memory:4;
+    header:cl -> memory:8;
+    header:bc -> memory:12;
+    header:un -> memory:14;
+    header:htl -> memory:15;
+}

@@ -30,6 +30,7 @@ skip_render:
 - google8cab9fa7fed4090d.html
 - 404.html
 - shehui/*
+- _temp/*
 
 
 # Writing

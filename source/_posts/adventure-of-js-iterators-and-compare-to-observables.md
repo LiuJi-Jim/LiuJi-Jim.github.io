@@ -1,6 +1,6 @@
 title: "继续探索JS中的Iterator，兼谈与Observable的对比"
 date: 2017-3-31 15:55:55
-tags: 
+tags:
 - 编程
 ---
 
@@ -142,6 +142,8 @@ function* eventListeningByCoroutine() {
     document.querySelector('#logger').innerHTML = e.pageX + ', ' + e.pageY
   }
 }
+
+startCoroutine(eventListeningByCoroutine)
 ```
 
 看到没，用一个`while (true)`，死命地从`eventSource`里拉东西出来，由于这个拉的过程是不确定（异步）的，我们只好加了`yield`。

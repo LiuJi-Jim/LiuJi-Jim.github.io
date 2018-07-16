@@ -1,0 +1,14 @@
+digraph Vector3F {
+    node [shape=record, fontname="Monaco"];
+    edge [fontname="Monaco"];
+
+    rankdir=TB;
+
+    struct [label="{struct Vector3F&nbsp;\{\l|<x>&nbsp;&nbsp;&nbsp;&nbsp;double x;\l|<y>&nbsp;&nbsp;&nbsp;&nbsp;double y;\l|<z>&nbsp;&nbsp;&nbsp;&nbsp;double z;\l|\}\l}"];
+
+    memory [label="{memory (24 bytes)|<0>0|...|<8>8|...|<16>16|...}"];
+
+    struct:x -> memory:0;
+    struct:y -> memory:8;
+    struct:z -> memory:16;
+}

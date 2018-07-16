@@ -1,0 +1,23 @@
+digraph yj1_header {
+    node [shape=record, fontname="Monaco"];
+    edge [fontname="Monaco"];
+
+    rankdir=TB;
+
+    header [shape="plaintext", label=<<table border="0" cellborder="1" cellspacing="0">
+        <tr>
+            <td colspan="4" port="signature">unsigned int<br />Signature</td>
+        </tr>
+        <tr>
+            <td colspan="4" port="ucl">unsigned int<br />UncompressedLength</td>
+        </tr>
+        <tr>
+            <td colspan="4" port="cl">unsigned int<br />CompressedLength</td>
+        </tr>
+        <tr>
+            <td colspan="2" width="300" port="bc">unsigned short<br />BlockCount</td>
+            <td width="150" port="un">unsigned char<br />Unknown</td>
+            <td width="150" port="htl">unsigned char<br />HuffmanTreeLength</td>
+        </tr>
+    </table>>];
+}

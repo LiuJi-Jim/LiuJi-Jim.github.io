@@ -1,0 +1,17 @@
+digraph Vector3F_DataView {
+    node [shape=record, fontname="Monaco"];
+    edge [fontname="Monaco"];
+
+    rankdir=TB;
+
+    dataview [label="{DataView}"];
+
+    arraybuffer [label="{ArrayBuffer}"];
+
+    memory [label="{memory (24 bytes)|<0>0|...|<8>8|...|<16>16|...}"];
+
+    dataview -> arraybuffer;
+    arraybuffer -> memory:0;
+    arraybuffer -> memory:8;
+    arraybuffer -> memory:16;
+}
