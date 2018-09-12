@@ -98,8 +98,8 @@ Array.prototype.asQueryable = function() {
 
 ```
 let arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-for (let item in arr.asQueryable()) {
-  console.log(arr)
+for (let item of arr.asQueryable()) {
+  console.log(item)
 }
 ```
 
