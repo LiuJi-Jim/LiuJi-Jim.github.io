@@ -1,0 +1,259 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>&#34;北上广大迁徙&#34;前端开发心得 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="前阵子和好基友@licstar一起做了一个很蛋疼很好玩的数据可视化小品，叫做北上广大迁徙。使用了百度地图手机App的热力图数据，做成了动态的，并对其中的热点进行解读，来了解大城市中人群每天一个循环的“迁徙”。
+整个开发用了几个小时的时间吧，我负责前端，他负责数据部分以及提供算法，这篇文章简单介绍一下其中前端部分在开发中的一些小心得。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="&#34;北上广大迁徙&#34;前端开发心得">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2014-05-06T15:23:12.000Z"><a href="/2014/05/06/bsgdqx/">May 6 2014</a></time>
+      
+      
+  
+    <h1 class="title">&#34;北上广大迁徙&#34;前端开发心得</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>前阵子和好基友<a href="http://weibo.com/licstar" target="_blank" rel="noopener">@licstar</a>一起做了一个<del>很蛋疼</del>很好玩的数据可视化小品，叫做<a href="http://bsgdqx.sinaapp.com/" target="_blank" rel="noopener">北上广大迁徙</a>。使用了<a href="http://wuxian.baidu.com/map/" target="_blank" rel="noopener">百度地图</a>手机App的热力图数据，做成了动态的，并对其中的热点进行解读，来了解大城市中人群每天一个循环的“迁徙”。</p>
+<p>整个开发用了几个小时的时间吧，我负责前端，他负责数据部分以及提供算法，这篇文章简单介绍一下其中前端部分在开发中的一些小心得。</p>
+<a id="more"></a>
+<h2 id="灰度图"><a href="#灰度图" class="headerlink" title="灰度图"></a>灰度图</h2><p>实际上看到的热力图是彩色的，但为什么标题是灰度图？这个说来话长。</p>
+<p>虽然最终是图片，但其实一开始我们就并没有打算用图片，因为采集到的数据只有整点的，每天从0点到24点，只有25张图，做个GIF就好了，基本比较难看出什么门道来。所以需要把动画效果做出来，就要进行<strong>插值</strong>。也就是需要传输<strong>原始数据</strong>。</p>
+<p>地图的大小不完全一样，大概是600*600的点阵，每个时间节点有36万个点，以每个1字节计，不压缩需要<strong>360KB</strong>，25张也接近10MB了。这种二进制存储要在WEB里传输并用JS处理，就得先经过BASE64，会损失33%的体积，大概<strong>13~15MB</strong>，即使用之前在我俩的<a href="https://github.com/liuji-jim/bad-apple" target="_blank" rel="noopener">Bad Apple</a>山寨的一种“BASE91”，也会超过10MB，所以是必须压缩的。</p>
+<p>于是我想到了结合二者的办法，<strong>把数据编码成图片</strong>。前端先使用canvas的<code>drawImage</code>把图片画到canvas上，再用<code>getImageData</code>获取字节数组，这样可以反解出每个像素使用颜色所表示的数值。<br>用图片还完美解决了压缩问题，在Bad Apple里我们用了自己实现的LZW，效果其实也不错<del>而且听起来更酷</del>（那时候为什么没想到用这个办法来着），不过这次没那么大动干戈，JPG无疑是不二选择。</p>
+<p>编码其实再简单不过了，热力图中从蓝到红的各种颜色其实是对一个归一化值的映射，并不是真正的彩色。那么存的时候只需要存一个数值就够了，为了尽可能照顾压缩，直接存成了灰度图，最后灰度图每个小时是<strong>30~40KB</strong>，一天不到<strong>1MB</strong>，事实上如果再把画质调低一点会更小（估计500~600KB没压力），而且也不怎么看得出来。</p>
+<p>因为JPG会产生伪色，所以前端取颜色的时候把rgb做了平均——图简单的话直接rgb随便取一个也行，差不了多少，可以省一个除法——但是这个取值只用每幅图做一次，所以不重要，懒得优化。然后对数据重新进行一次归一化（直接插值的话我觉得可以不做归一化，而是插值完了再归一化）。</p>
+<h2 id="动画"><a href="#动画" class="headerlink" title="动画"></a>动画</h2><p>动画是通过<code>requestAnimationFrame</code>做的，这里面用了3个时间概念。<br><strong>当时是半夜写的，思路很晕，所以这么乱七八糟的计时不看也罢。</strong></p>
+<p><code>秒表时间</code>：基本的计时，用秒表当前掐出来的时间，是后面的基础<br><code>播放时间</code>：用来表示动画播放了多久，用它除<code>每一个小时所对应的秒表时间</code>就可以知道应该播放哪一帧<br><code>挂钟时间</code>：表示“真实”时间，这个真实是指最终映射到的24H里的时间，而并不是计时概念上的真实，用于显示以及触发<code>故事板</code></p>
+<p>每一帧先用<code>秒表时间</code>减去<code>开始时间</code>，再加上次<code>暂停时间</code>，获得当前的<code>播放时间</code>，用它和所定义的播放时间与挂钟时间的比例进行简单运算（比如播放4秒对应现实1小时），可以算出当前应该播放哪一帧，插值的<code>delta</code>值，同时也得到了<code>挂钟时间</code>。</p>
+<p>在暂停的时候更新<code>暂停时间</code>为当前的<code>播放时间</code>；在开始的时候更新<code>开始时间</code>为当前的<code>秒表时间</code>。</p>
+<p>如果要实现进度条，可以在拖拽的时候先暂停，拖拽过程中更新<code>暂停时间</code>，撒手了重新播放就行了。</p>
+<p>但不得不吐槽<code>requestAnimationFrame</code>，我估计它实现的初衷是做60FPS，但是事实上我发现它触发率很不稳定，常常在17ms左右，也就是根本达不到60FPS。<br>这也就算了，也许我只需要老老实实地按照它触发频率，配合计时器做动画就够了。但问题是我每一帧的计算量可能比较大，现在我觉得60FPS下CPU占用太高了，想实现更低的帧率，用它就根本没精度可言了。所以后来我在另一个程序里，考虑用<code>setInterval 0</code>配合高精度计时来做到像20, 25这样的帧率控制。</p>
+<h2 id="插值"><a href="#插值" class="headerlink" title="插值"></a>插值</h2><p>为了模拟非整点的状态变化，用了最简单的线性插值（LERP），每次通过两帧来插值：<br><figure class="highlight maxima"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">var</span> <span class="built_in">color</span> = val1 * (<span class="number">1</span> - <span class="built_in">delta</span>) + val2 * <span class="built_in">delta</span>;</span><br></pre></td></tr></table></figure></p>
+<p>值得一提的是里面的颜色值并不是原始值，因为热力图里的值事实上是阶梯状的，对插值不友好，所以licstar先自己YY了一个转换规则把他们都转换成线性分布的，插值完了再转回来。<br>本来以为插值会比较影响性能，但实际上发现因为LERP实在太简单，影响很小。</p>
+<p>对插值结果进行一下归一化，可以通过查表或者简单if的方式变换到最终要画的颜色。</p>
+<p>画的时候因为是逐像素的，所以还是用<code>getImageData</code>和<code>putImageData</code>（简直是神器……）绘图非常简单，因为canvas是透明的，所以只要把地图垫在底下，canvas直接画就行了。</p>
+<p>这个插值极其山寨，因为它只能表示每一个点自己的变化状态，所以看起来就像是“躁动”而不是“迁徙”。由于数据源的归一化效果很奇怪，上海和广州的结果插值之后会有很明显的很奇怪的呼吸效果，整个地图会忽明忽暗的，这里就不吐槽数据源了，因为其实也算来之不易……</p>
+<h2 id="故事板"><a href="#故事板" class="headerlink" title="故事板"></a>故事板</h2><p>后来纠结的licstar发现这么看动画好像看不出来什么，于是加了一个在旁边显示一些注解的功能，我称其为故事板。</p>
+<p>每个Story都是一个div这类的东西，用绝对定位，事先设计好，指定一个开始时间、结束时间（形如9.5表示9:30）。</p>
+<p>开始播放前遍历所有这一类div，对他们的开始时间和结束时间分别给个数组并且排序，在播放过程中，两个数组各有一个只增不减的游标，跟着时间走，对应的div显示或隐藏就行了，简单粗暴……大概是这么个样<br><figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> (<span class="built_in">list</span>.index &lt; <span class="built_in">list</span>.<span class="built_in">length</span> &amp;&amp; <span class="built_in">list</span>[<span class="built_in">list</span>.index].<span class="built_in">time</span> &lt;= currentTime)&#123;</span><br><span class="line">  <span class="built_in">list</span>[<span class="built_in">list</span>.index].dom.fadeIn(<span class="number">200</span>);</span><br><span class="line">  <span class="built_in">list</span>.index++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="黑科技"><a href="#黑科技" class="headerlink" title="黑科技"></a>黑科技</h2><p><strong>快速取整</strong></p>
+<p>一般会用<code>Math.floor</code>来向下取整，之前在网上有看到用<code>~~(x)</code>就能快速取整，计算密集的时候真的比<code>Math.floor</code>快不少！这程序里面需要做除法结果取整的地方挺多的，所以到处都充斥着这个办法。</p>
+<p><del>吐槽下，帮官微带了1000转发呢……抽奖有礼品，这个都不单独给来个礼品神马的 T_T</del></p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

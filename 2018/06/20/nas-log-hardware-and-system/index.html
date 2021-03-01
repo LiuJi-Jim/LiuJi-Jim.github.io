@@ -1,0 +1,376 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>NAS折腾记-硬件及系统篇 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="最近终于折腾了一下 NAS，开个坑记录一下（流水账）。
+硬件及系统篇。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="NAS折腾记-硬件及系统篇">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2018-06-20T15:33:33.000Z"><a href="/2018/06/20/nas-log-hardware-and-system/">Jun 20 2018</a></time>
+      
+      
+  
+    <h1 class="title">NAS折腾记-硬件及系统篇</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>最近终于折腾了一下 NAS，开个坑记录一下（流水账）。</p>
+<p>硬件及系统篇。</p>
+<a id="more"></a>
+<h2 id="1-硬件选型及配置"><a href="#1-硬件选型及配置" class="headerlink" title="1. 硬件选型及配置"></a>1. 硬件选型及配置</h2><h4 id="群晖、QNAP"><a href="#群晖、QNAP" class="headerlink" title="群晖、QNAP"></a>群晖、QNAP</h4><p>优点是系统整合度高，群晖的 DSM 软件口碑不错，硬件设计比较精密（体积小耗电低）。但价格偏高，4 盘位的群晖，X86 型号 DS418play 的话价格接近 4000，即使 618 期间可以 3600 左右拿下，还是贵啊。</p>
+<h4 id="自组"><a href="#自组" class="headerlink" title="自组"></a>自组</h4><p>这个多花几句话说说。</p>
+<p>优点是自由度高，可以<del>发扬图吧精神</del>淘宝各种电子垃圾，肯折腾和钻研的话价格是很低的，折腾硬件的过程也可以获得一些乐趣（Are you serious??）盘位设计比较极限，有的机箱提供了 4 x 3.5 盘位同时还能在侧板上装一个 2.5 的。</p>
+<p>缺点也比较明显，体积方面 Mini-ITX 是极限。但很多淘宝货 4 盘位的 NAS 小机箱对 CPU 散热器要求严苛，大概只有 4-5 厘米的高度空间，这样的散热器嗷嗷贵（像样一点，最便宜的也要一百多，大概 5 厘米高，再薄一点的就两三百了），另外因为 NAS 机箱的设计一般都是主板上方正对硬盘盒，造成即使装进去了下压式的散热器，也没有风道可用，散热效果大概率靠不住。当然也有贵的、稍微大一点点的机箱（比如联力 Q25）可以装塔式散热，能提供 7 盘位，PCI-E 挡板还是双槽位的，然而真的会有那么烧么……用整合 CPU 的板子，选择不多，而且基本上都是赛扬 J 系列，这倒不是不够用，不过就是为了压成本的玩法了。</p>
+<p>另外就是 Mini-ITX 的用服务器芯片组（比如 C226、C236）的主板不是没有，妖板自然先看华擎，E3C226D2I 这板子就是，Chiphell 上有人就晒了基于它的装机。但问题也不少，首先它只有 VGA 输出，不能兼职 HTPC 了，其次它自带了一个某某某芯片，用来接管显示和 IMPI 功能，这样就不能用核显（这大概也是它只有 VGA 的原因吧），也就意味着它作为流媒体服务使用的话，服务端是没法利用 Intel 核显的 QuickSync 硬解技术的，所以它其实是比较严格的服务器主板，在家用这种可能需要身兼数职的场合会比较受限。</p>
+<h4 id="服务器准系统"><a href="#服务器准系统" class="headerlink" title="服务器准系统"></a>服务器准系统</h4><p>一般 4 盘位，体积和淘宝货 NAS 机箱差不多，胜在不需要折腾，主板一般是服务器主板，提供 VGA 和 DP 输出，2 到 3 个千兆网口，大概 6 个左右 USB。用 1U 电源或者 FLEX 电源，然后还有一个无卵用的 Slim 光驱位。</p>
+<h4 id="对比一下"><a href="#对比一下" class="headerlink" title="对比一下"></a>对比一下</h4><p>我的理解：不折腾自然选成品，但性能是一般，价格也最高。愿意折腾可以选自组，其实也非常受限，如果不追求小体积的话换个 M-ATX 机箱，那么整体成本和装机难度都大幅下降，选择也一下多很多。而服务器准系统相对来说比较平衡，可以自由发挥的空间不大，顶多也就是换个 CPU、扩下内存啥的，硬件方面基本不需要折腾。</p>
+<p>所以最终我的选择是<strong>服务器准系统</strong>。</p>
+<p>经过一番不走心的调研，圈定了 <a href="https://www.hpe.com/us/en/product-catalog/servers/proliant-servers/pip.hpe-proliant-microserver-gen10.1009955118.html" target="_blank" rel="noopener">HPE ProLiant MicroServer Gen10</a> 和 <a href="https://www.acer.com/ac/zh/CN/content/series/altosc100f3" target="_blank" rel="noopener">Acer Altos C100 F3</a>，共同点都是 4 盘位，体积差不多，HP 似乎还稍微小一点点。</p>
+<p>HP 机器新一些，性能也更好，用的是 AMD Opteron X3000 系列，据说性能可以对标 6 代酷睿 i3。2 LAN，2 DP 输出，设相对较偏家用，外观比较漂亮。</p>
+<p>Acer 机器旧一些，芯片组是 Intel C226，LGA 1150 平台，LGA 1150 接口最高可以上 E3 1285L v3，3 LAN，1 DP 输出，偏服务器一点，外观比较粗犷。</p>
+<p>最后选了 Acer 那个，价格便宜一些……查了一下各种电子垃圾旧 DDR3 ECC 内存，太他娘的贵了，8G 竟然要四百多，内存不愧是年度最佳理财产品。还是直接买卖家组好的吧，烈士墙在等待我，淘宝挑了一个北京的卖家，名叫“联想服务器北京xxx”，呵呵呵一听就是专卖电子垃圾的啊。配置选了一个“中配”，i3 4130 + 8G 内存。选这个配置是因为再高一档的 E3 1225 v3 + 8G 感觉目前而言用不上，而且 TDP 高了 20W，以后有需要了再升级 CPU 吧，最后入手价格 2230。</p>
+<h4 id="适合-NAS-与小服务器的-LGA-1150-CPU-粗略对比"><a href="#适合-NAS-与小服务器的-LGA-1150-CPU-粗略对比" class="headerlink" title="适合 NAS 与小服务器的 LGA 1150 CPU 粗略对比"></a>适合 NAS 与小服务器的 LGA 1150 CPU 粗略对比</h4><table>
+<thead>
+<tr>
+<th style="text-align:right"></th>
+<th style="text-align:right">核心</th>
+<th style="text-align:right">主频</th>
+<th style="text-align:right">睿频</th>
+<th style="text-align:right">TDP</th>
+<th style="text-align:right">L3 Cache</th>
+<th style="text-align:right">￥</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">i3 4130</td>
+<td style="text-align:right">2C4T</td>
+<td style="text-align:right">3.4</td>
+<td style="text-align:right">N/A</td>
+<td style="text-align:right">54</td>
+<td style="text-align:right">3M</td>
+<td style="text-align:right">430</td>
+</tr>
+<tr>
+<td style="text-align:right">E3 1225 v3</td>
+<td style="text-align:right">4C4T</td>
+<td style="text-align:right">3.2</td>
+<td style="text-align:right">3.6</td>
+<td style="text-align:right">84</td>
+<td style="text-align:right">8M</td>
+<td style="text-align:right">750</td>
+</tr>
+<tr>
+<td style="text-align:right">E3 1285L v3</td>
+<td style="text-align:right">4C8T</td>
+<td style="text-align:right">3.1</td>
+<td style="text-align:right">3.9</td>
+<td style="text-align:right">65</td>
+<td style="text-align:right">8M</td>
+<td style="text-align:right">1200</td>
+</tr>
+</tbody>
+</table>
+<h4 id="硬盘"><a href="#硬盘" class="headerlink" title="硬盘"></a>硬盘</h4><p>先买了个 Sandisk 的 120G SSD 做系统盘（再山寨的牌子实在不敢买，也就便宜二三十块），和一个 WD 2T 红盘。为什么只买 2T 这么小的？因为长线计划是 2T 做私有云，8T 存片儿，但目前片儿少，并不需要 8T 那么大，而且现在 8T 要接近 2000 块钱，这成本吓人的，先把系统搭建起来再说，就不一次性投资那么大了，大不了后面忍受一次数据迁移的苦呗。</p>
+<p>考虑到私有云需要数据安全（不损坏）、而存片儿则没那么高要求<del>谁说的！小姐姐丢了怎么办？</del>，其实我理想中的形态是 2T x 2 Raid 1 + 8T，但是不知道这种混合了 Raid 与非 Raid 的方案是否可行。</p>
+<h4 id="装机"><a href="#装机" class="headerlink" title="装机"></a>装机</h4><p>到手，拆开看看，没啥好看的，里面布局还是比较紧凑的，但其实整体并不小，从 4 盘位的群晖或 QNAP 产品图上看，这货要大一圈，大概是供电和散热方面、还有那个无卵用的光驱位占了不少体积吧，毕竟定位是比较通用的服务器准系统，而且是 LGA 1150 平台的，集成度肯定没有那么高。</p>
+<p>这机器 4 x 3.5 的盘位，没有 M.2 接口，于是系统盘要占一个盘位。装的时候我还刻意把 HD 放在了最下面一个盘位，感觉重心低点可能减少工作时共振的噪音（yy的）？但其实如果肯折腾一下，是可以把 2.5 寸 SSD 装在光驱位的，反正现在我盘位也没用满，我折腾那劲干啥啊。</p>
+<p>因为是准系统，装机环节就没多少好说的了，记得 BIOS 里开启网络唤醒（WOL）就好，现在的路由器一般也都支持，这部分就先到这里，照片也没拍，从淘宝上盗两张吧。</p>
+<p><img src="/uploads/2018/acer-altos-c100-f3-1.jpg" alt></p>
+<p><img src="/uploads/2018/acer-altos-c100-f3-2.jpg" alt></p>
+<p>以盘位为参考大小，可以对比一下 DS418play 看的话体积还是比较大的，考虑以后如果放在电视柜兼职 HTPC 的话体积还真不能说小，估计还是找个角落藏起来比较好。</p>
+<p><img src="/uploads/2018/synology-ds418play.jpg" alt></p>
+<h2 id="2-系统"><a href="#2-系统" class="headerlink" title="2. 系统"></a>2. 系统</h2><h3 id="2-0-选型"><a href="#2-0-选型" class="headerlink" title="2.0. 选型"></a>2.0. 选型</h3><p>系统可以选 Linux 和 Windows，为什么不选黑群晖、FreeNAS 这类的专门做 NAS 的系统？首先，既然有 X86 那么肯定是性能取向的，虚拟机和 docker 可以燥起来，于是宿主环境自然要选择全功能系统，不然那些玩意够折腾死，遇到有需要的时候再用虚拟化来解决。</p>
+<p>先做一个粗略的功能对比吧</p>
+<h4 id="运维"><a href="#运维" class="headerlink" title="运维"></a>运维</h4><ul>
+<li>Linux：几乎都 CLI，GUI 用的人少</li>
+<li>Windows：GUI 为主，也可以用 CLI (PowerShell)</li>
+</ul>
+<p>PowerShell 不太会，Linux 上有些过去我自己写的以及从运维那里偷来的脚本可以沿用一下。</p>
+<h4 id="远程桌面"><a href="#远程桌面" class="headerlink" title="远程桌面"></a>远程桌面</h4><ul>
+<li>Linux：<a href="https://jumpdesktop.com/" target="_blank" rel="noopener">Jump Desktop</a></li>
+<li>Windows：官方</li>
+</ul>
+<p>Linux 用远程桌面的人应该不多吧……另外 Jump Desktop 的 Mac 客户端好贵好贵。</p>
+<p>微软官方的新版远程桌面体验很好，再也不是过去那个老掉牙的了，Mac 版中国区没上架，需要用个外国区的 Apple ID 才能下。</p>
+<h4 id="Web-Shell"><a href="#Web-Shell" class="headerlink" title="Web Shell"></a>Web Shell</h4><ul>
+<li>Linux：<a href="https://cockpit-project.org/" target="_blank" rel="noopener">Cockpit</a></li>
+<li>Windows：Windows Admin Center</li>
+</ul>
+<p>Cockpit 更多是一个 Web 监控，附带一些基础运维功能、一个 Web 终端；Windows Admin Center 没用过，但看介绍的话很强大，连注册表编辑器都有。</p>
+<h4 id="文件共享"><a href="#文件共享" class="headerlink" title="文件共享"></a>文件共享</h4><ul>
+<li>Linux：Samba、NFS</li>
+<li>Windows：Samba</li>
+</ul>
+<p>NFS 性能应该比 Samba 好一些？Windows 自然也可以用 NFS，不过系统整合程度就没有 Samba 那么高，折腾一点。</p>
+<h4 id="私有云"><a href="#私有云" class="headerlink" title="私有云"></a>私有云</h4><ul>
+<li>Linux：<a href="https://www.seafile.com/" target="_blank" rel="noopener">Seafile</a>、<a href="https://nextcloud.com/" target="_blank" rel="noopener">Nextcloud</a></li>
+<li>Windows：<a href="https://www.seafile.com/" target="_blank" rel="noopener">Seafile</a></li>
+</ul>
+<p>Seafile 国产的，Nextcloud 歪国的，都没用过，不知道。</p>
+<h4 id="迅雷"><a href="#迅雷" class="headerlink" title="迅雷"></a>迅雷</h4><ul>
+<li>Linux：<a href="http://luyou.xunlei.com/forum-51-1.html" target="_blank" rel="noopener">xware</a></li>
+<li>Windows：官方</li>
+</ul>
+<p>xware 是迅雷官方的一个东西，原本是作为迅雷路由器的固件来发布的，于是自然有人给它做了前端。主流的用法其实是把它跑做一个后台程序，作为一个远程下载的设备。然而迅雷远程这玩意官方已经关掉大多数入口，怕是不知道啥时候就下线了。而且实际用下来（我是 docker 跑的）发现不能离线加速（点了无卵用），感觉略废柴。而且 xware 官方早已不更新，只是服务本身还没下线而已。</p>
+<p>Win 客户端虽然又臃肿又慢，但离线加速的功能至少是好的，由于 Win 客户端也已经关闭了添加远程的入口，无法实验远程离线加速是否可用。</p>
+<h4 id="百度云"><a href="#百度云" class="headerlink" title="百度云"></a>百度云</h4><ul>
+<li>Linux：bypy</li>
+<li>Windows：官方</li>
+</ul>
+<p>bypy 这玩意是基于 PCS API 的一个微型客户端（一堆脚本），它只能访问应用沙盒里的路径，用起来比较别扭。另一个问题是，PCS API 的所有入口都关闭了，只是服务还在，过去申请的 AppKey/AppSecret 依然可以使用。</p>
+<p>如果没有自己的 AK/AS 的话只能用项目作者的中转服务器来做 OAuth，虽然不诛心，不过谁知道他会不会把 access token 存下来……当然他也提供了一个本地认证的方式，需要自己有 AK/AS 并且是开通了 PCS API 权限的，现在自然是无法申请到了，还好我有一个祖传的。</p>
+<h4 id="远程下载"><a href="#远程下载" class="headerlink" title="远程下载"></a>远程下载</h4><ul>
+<li>Linux：Aria2</li>
+<li>Windows：Aria2</li>
+</ul>
+<p>没啥区别，Aria2 的 WebUI 选择不少，我用的是 AriaNG。不过 Aria2 不支持 eMule，有时候显得很无能狂怒。</p>
+<h4 id="媒体中心"><a href="#媒体中心" class="headerlink" title="媒体中心"></a>媒体中心</h4><ul>
+<li>Linux：PLEX、Emby</li>
+<li>Windows：PLEX、Emby</li>
+</ul>
+<p>都没用过，到时候再看看。</p>
+<h4 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h4><p>这两者我一开始是偏向 Linux 的，因为我在 Windows 方面的运维经验几乎为 0。发行版就选 Ubuntu 吧，apt 用起来比较简单，社区热度和其他开源项目对 Ubuntu 的友好程度也还行。</p>
+<h3 id="2-1-Linux-篇"><a href="#2-1-Linux-篇" class="headerlink" title="2.1. Linux 篇"></a>2.1. Linux 篇</h3><p>于是，做好 Ubuntu Server 18.04 LTS 的安装 U 盘就操练起来了。</p>
+<p>Ubuntu Server 的安装不难，过程中配置一下网卡，网………………卡，等等，卡住了……再试试，又卡住了。思索 10 秒钟，从现象判断是这版本 Linux 不支持其中两张网卡（？？？），啧啧啧，毕竟 Acer 的官方文档里也没写这机器支持 Ubuntu，要换 SUSE 吗？No way 我就是喜欢 Ubuntu 嘛（扭）。好，至少我现在只用一根网线，那么就先去 BIOS 里屏蔽掉另外两张网卡吧。</p>
+<p>系统安装成功。</p>
+<p>进系统，终于可以把显示器和键盘还给我的台式机了，剩下的工作就用 SSH 搞定吧。</p>
+<p>嗡嗡嗡………………等下这声音从哪来的，我去为什么机箱风扇转速有 19xx RPM？啧啧啧，找了一下资料，装上 sensors-detect 和 fancontrol ，却找不到 PWM 调速风扇。</p>
+<p>啊？难道这倒霉系统不支持另外两块网卡也就算了，连给风扇调速都不支持？要不……换 Win 试试？</p>
+<h3 id="2-2-Windows-篇"><a href="#2-2-Windows-篇" class="headerlink" title="2.2. Windows 篇"></a>2.2. Windows 篇</h3><p>嗯，反正折腾呗，做个 Windows Server 2016 的安装 U 盘，再次操练起来吧。</p>
+<p>安装过程也是很顺利的，开启了远程桌面服务以后，就可以把显示、鼠标键盘还给台式机了。</p>
+<p>然后装一个 fanspeed 软件，当场脸青了，还是找不到风扇。</p>
+<p>所以……绝了，我大概明白了，这风扇只受 BIOS 控制，目测 BIOS 只给它两档，不开智能调速就是 6100 RPM，那声音跟进了厂房差不多，开了的话常规情况就是 19xx RPM，一是转速不算低，二是它很厚，叶片面积那是相当的大，声音还是不能接受。</p>
+<p>于是默默地京东下单买了个 12cm 的低速风扇，1200 RPM 的，50 块钱，好贵，但淘宝解不了急啊，第二天装上以后安静了，只有安静的时候在机器范围大概 1 米以内的样子能听见轻微的声音。</p>
+<h3 id="2-3-插曲"><a href="#2-3-插曲" class="headerlink" title="2.3. 插曲"></a>2.3. 插曲</h3><p>中途有一次重启过后突然进不去远程桌面了，无奈，再次把显示器、鼠标键盘借给服务器，发现开机显示 <code>Warning: Chassis is opened</code>，呵呵呵，服务器就是矫情，本来想着风扇到货之前先拆掉裸奔，既然这样那就还是都装上吧。</p>
+<p>却还是继续报这个，好的，按 F1 忽略或按 F2 进 BIOS，我按，我按，却没反应……</p>
+<p>啊？？？</p>
+<p>难道刚才折腾的时候把传感装置弄坏了？拆开机箱，观察了一下，主板上有一个 <code>Case Open</code> 的 2 Pin 接口，连一根线接到机箱旁边有一个继电器（还是微动开关？whatever，反正就是个开关），只要机箱盖子正确的盖上，开关接通，2 Pin 就会接通。</p>
+<p>简单嘛，手把那个开关压住就行了，开机，问题依旧。</p>
+<p>难道是因为刚才暴力拆装把开关弄坏了？声音很清脆啊，弹簧手感也很正常，没这么娇嫩吧？管它，先把开关拆了，直接镊子短接一下主板上的两根针脚，开机，问题依旧。</p>
+<p>难道是我手法不够犀利，想当年电脑电源开关坏了，用镊子短接针脚一下开机，不要太娴熟啊，唉，老了老了。</p>
+<p>查下说明书，把 BIOS Reset 一下，开机，问题依旧。</p>
+<p>我苦思冥想，等等，难道………………………………</p>
+<p>我不服啊，去了一趟公司，把另一块键盘拿回家，顺便把无线鼠标也拿回来了，接上，开机，好……好了…………</p>
+<p>倒霉键盘我掰了……算了，不少钱呢，反正在台式机上用着是好的，留着继续用吧。</p>
+<p>所以最终是什么原因呢？我也不知道，反正第一时间进 BIOS 里把这个提示给关了。</p>
+<h3 id="2-4-小结"><a href="#2-4-小结" class="headerlink" title="2.4. 小结"></a>2.4. 小结</h3><p>要不……咱又换回 Linux？算了……闹心，用 Windows，挺好。</p>
+<hr>
+<p>本期节目就先到这里，下期开始进入软件篇。这期写的枯燥了一点，主要是过程中也懒得拍照片，不过既然是准系统大概也没什么好晒图的，下期既然是软件那就争取多配点图吧。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/生活/">生活</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>Swift入门笔记-1 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="霉霉斯威夫特入门笔记，继续流水账。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Swift入门笔记-1">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-10-08T15:33:33.000Z"><a href="/2015/10/08/beginning-swift-1/">Oct 8 2015</a></time>
+      
+      
+  
+    <h1 class="title">Swift入门笔记-1</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p><del>霉霉</del>斯威夫特入门笔记，继续流水账。</p>
+<a id="more"></a>
+<h1 id="2-函数"><a href="#2-函数" class="headerlink" title="2. 函数"></a>2. 函数</h1><h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">sayHello</span><span class="params">(name: String)</span></span> -&gt; <span class="type">String</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"Hello, \(name)!"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h2><p>但如果你的函数有两个或更多参数……</p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">func</span> <span class="selector-tag">my_max</span>(<span class="attribute">a</span>: Int, <span class="attribute">b</span>: Int) <span class="selector-tag">-</span>&gt; <span class="selector-tag">Int</span> &#123;</span><br><span class="line">    <span class="selector-tag">return</span> <span class="selector-tag">a</span> &gt; <span class="selector-tag">b</span> ? <span class="selector-tag">a</span>: <span class="selector-tag">b</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="selector-tag">my_max</span>(<span class="number">3</span>, <span class="number">4</span>) <span class="comment">// 这样调用是不对的</span></span><br><span class="line"><span class="selector-tag">my_max</span>(<span class="number">3</span>, <span class="attribute">b</span>: <span class="number">4</span>) <span class="comment">// 这样才行</span></span><br></pre></td></tr></table></figure>
+<p>有没有很想骂人？<img src="/uploads/public/tiebaxiao.gif" alt></p>
+<p>辣磨，如何才能用<code>my_max(3, 4)</code>来调用呢？</p>
+<p>首先，在Swift里参数名有“内外”之分，函数外可以用一个名字（具名传参），函数内可以用另一个名字，例如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">my_max</span><span class="params">(one a: Int, the_other b: Int)</span></span> -&gt; <span class="type">Int</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> a &gt; b ? a: b</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中<code>one</code>和<code>the_other</code>分别叫外部参数名（External Parameter Name），而<code>a</code>和<code>b</code>叫内部参数名或者局部参数名（Local Parameter Name），这样在调用它的时候可以使用具名传参：</p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">my_max</span>(<span class="attribute">one</span>: <span class="number">3</span>, <span class="attribute">the_other</span>: <span class="number">4</span>)</span><br></pre></td></tr></table></figure>
+<p>有没有想继续骂人？<img src="/uploads/public/tiebaxiao.gif" alt>别着急，到目前为止，我们大概可以猜到如下规则：</p>
+<ul>
+<li>第一个参数在没有指定外部参数名的时候，不用具名传参</li>
+<li>第一个参数在指定外部参数名的时候，需要具名传参</li>
+<li>其他参数不论是否指定参数名，都需要具名传参</li>
+<li>？？？？？？？？？</li>
+</ul>
+<p>补全第四条，似乎就找到了“其他参数不需要具名传参”的真谛了……于是乎Swift里有这么个东西叫“忽略外部参数名（Omitting External Parameter Names）”</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">my_max</span><span class="params">(a: Int, <span class="number">_</span> b: Int)</span></span> -&gt; <span class="type">Int</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> a &gt; b ? a: b</span><br><span class="line">&#125;</span><br><span class="line">my_max(<span class="number">3</span>, <span class="number">4</span>) <span class="comment">// 终于可以这样写了</span></span><br></pre></td></tr></table></figure>
+<p>把参数<code>b</code>的外部参数名写叫<code>_</code>，传参的时候就可以忽略它了……<strong>获得BUFF：心满意足</strong></p>
+<p><img src="/uploads/public/kengdie.gif" alt></p>
+<p>我只想说：呵呵</p>
+<h3 id="参数默认值"><a href="#参数默认值" class="headerlink" title="参数默认值"></a>参数默认值</h3><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">func greeting(name: String, word: String = <span class="string">"Hello"</span>) -&gt; String &#123;</span><br><span class="line">    return <span class="string">"\(word), \(name)!"</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">greeting</span><span class="params">(<span class="string">"Jim"</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">greeting</span><span class="params">(<span class="string">"Jim"</span>, word: <span class="string">"hehe"</span>)</span></span></span><br></pre></td></tr></table></figure>
+<p>四不四很简单呐？虽然一般来说把带默认值的参数放在最后是比较方便的，但是也可以用些取巧的做法，比如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">rnd</span><span class="params">(<span class="built_in">min</span>: Int = <span class="number">0</span>, <span class="built_in">max</span>: Int)</span></span> -&gt; <span class="type">Int</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">min</span> + random() % (<span class="built_in">max</span> - <span class="built_in">min</span>)</span><br><span class="line">&#125;</span><br><span class="line">rnd(<span class="number">10</span>, <span class="built_in">max</span>: <span class="number">20</span>)</span><br><span class="line">rnd(<span class="built_in">max</span>: <span class="number">10</span>)</span><br></pre></td></tr></table></figure>
+<p>小子有种放学别走，我和你聊聊什么是<strong>函数重载</strong>。</p>
+<h3 id="可变参数（Variadic-Parameters）"><a href="#可变参数（Variadic-Parameters）" class="headerlink" title="可变参数（Variadic Parameters）"></a>可变参数（Variadic Parameters）</h3><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">my_max</span><span class="params">(nums: Int...)</span></span> -&gt; <span class="type">Int</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> <span class="built_in">max</span> = <span class="type">Int</span>.<span class="built_in">min</span></span><br><span class="line">    <span class="keyword">for</span> n <span class="keyword">in</span> nums &#123;</span><br><span class="line">        <span class="keyword">if</span> (n &gt; <span class="built_in">max</span>) &#123;</span><br><span class="line">            <span class="built_in">max</span> = n</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">max</span></span><br><span class="line">&#125;</span><br><span class="line">my_max(<span class="number">11</span>, <span class="number">33</span>, <span class="number">22</span>, <span class="number">55</span>, <span class="number">44</span>)</span><br></pre></td></tr></table></figure>
+<p>和C#里的可变参数差不多，不过事实上Swift只限制一个函数至多有一个可变参数，但却不限制可变参数必须是最后一个参数，于是结合具名参数，可以搞出很奇怪的东西来，比如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">my_max</span><span class="params">(nums: Int..., nonsense: Int)</span></span> -&gt; <span class="type">Int</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> <span class="built_in">max</span> = <span class="type">Int</span>.<span class="built_in">min</span></span><br><span class="line">    <span class="keyword">for</span> n <span class="keyword">in</span> nums &#123;</span><br><span class="line">        <span class="keyword">if</span> (n &gt; <span class="built_in">max</span>) &#123;</span><br><span class="line">            <span class="built_in">max</span> = n</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">max</span></span><br><span class="line">&#125;</span><br><span class="line">my_max(<span class="number">11</span>, <span class="number">33</span>, <span class="number">22</span>, <span class="number">55</span>, <span class="number">44</span>, <span class="number">66</span>, nonsense: <span class="number">999</span>)</span><br></pre></td></tr></table></figure>
+<p>反正如果谁写这样的代码我绝对不会砍ta的……</p>
+<p><strong>然而我没有找到JS里的<code>apply</code>或者C#那样可以把数组直接扔进去铺开可变参数那种语法……</strong></p>
+<h3 id="常量参数和变量参数"><a href="#常量参数和变量参数" class="headerlink" title="常量参数和变量参数"></a>常量参数和变量参数</h3><p>参数在函数里都被当做常量（<code>let</code>定义的），如果想在函数里修改参数的值，需要在定义前面加一个<code>var</code>。</p>
+<p><strong>但是这里的修改只是对传参副本的修改，不会对传参原本值进行修改。</strong>这么设计也许只是为了让函数看起来更pure一点，默认immutable。</p>
+<h3 id="inout参数"><a href="#inout参数" class="headerlink" title="inout参数"></a>inout参数</h3><p>正如上面所说，<code>var</code>参数只能修改传参副本，那么要修改参数原本的话，就需要用到<code>inout</code>参数：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">func my_swap(inout <span class="selector-tag">a</span>: Int, inout _ <span class="selector-tag">b</span>: Int) &#123;</span><br><span class="line">    let tmp = a</span><br><span class="line">    <span class="selector-tag">a</span> = b</span><br><span class="line">    <span class="selector-tag">b</span> = tmp</span><br><span class="line">&#125;</span><br><span class="line"><span class="selector-tag">var</span> aa = <span class="number">3</span>, bb = <span class="number">5</span></span><br><span class="line"><span class="function"><span class="title">my_swap</span><span class="params">(&amp;aa, &amp;bb)</span></span></span><br></pre></td></tr></table></figure>
+<p>还搞个<code>&amp;</code>看着跟取址似的，蒙谁呢……</p>
+<h2 id="函数重载"><a href="#函数重载" class="headerlink" title="函数重载"></a>函数重载</h2><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">rnd</span><span class="params">(<span class="built_in">min</span>: Int, <span class="number">_</span> <span class="built_in">max</span>: Int)</span></span> -&gt; <span class="type">Int</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> range = <span class="built_in">max</span> - <span class="built_in">min</span></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">min</span> + random() % range</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">rnd</span><span class="params">(<span class="built_in">max</span>: Int)</span></span> -&gt; <span class="type">Int</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> rnd(<span class="number">0</span>, <span class="built_in">max</span>)</span><br><span class="line">&#125;</span><br><span class="line">rnd(<span class="number">10</span>, <span class="number">20</span>)</span><br><span class="line">rnd(<span class="number">100</span>)</span><br></pre></td></tr></table></figure>
+<p>参考文献里没有，试出来的，大概就是这么个样吧……</p>
+<h2 id="函数类型"><a href="#函数类型" class="headerlink" title="函数类型"></a>函数类型</h2><p>Swift应该也算First-class Function语言吧。</p>
+<p>Swift里的函数类型用了一个很像Haskell的很讨巧的表示方法，如上面的rnd那个双参数重载，它的类型为：</p>
+<figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="built_in">Int</span>, <span class="built_in">Int</span>) -&gt; <span class="built_in">Int</span></span><br></pre></td></tr></table></figure>
+<p>知道了定义，那么函数就可以当强类型变量来用了：</p>
+<figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">var secretFunc: (<span class="built_in">Int</span>, <span class="built_in">Int</span>) -&gt; <span class="built_in">Int</span> = rnd</span><br><span class="line">secretFunc(<span class="number">20</span>, <span class="number">40</span>)</span><br></pre></td></tr></table></figure>
+<p>也可以用来传参，实现高阶函数</p>
+<figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">func run<span class="function"><span class="params">(fn: () -&gt; Void)</span> &#123;</span></span><br><span class="line"><span class="function">    <span class="title">fn</span><span class="params">()</span></span></span><br><span class="line"><span class="function">&#125;</span></span><br><span class="line"><span class="function"><span class="title">func</span> <span class="title">haha</span><span class="params">()</span> &#123;</span></span><br><span class="line"><span class="function">    <span class="title">print</span><span class="params">(<span class="string">"Haha"</span>)</span></span></span><br><span class="line"><span class="function">&#125;</span></span><br><span class="line"><span class="function"><span class="title">run</span><span class="params">(haha)</span></span></span><br></pre></td></tr></table></figure>
+<p>也可以用来当返回值类型……</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">mkFunc</span><span class="params">()</span> -&gt; <span class="params">()</span> -&gt; <span class="title">Void</span></span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">hehe</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">"Hehe"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> hehe</span><br><span class="line">&#125;</span><br><span class="line">let fn = mkFunc()</span><br><span class="line">fn()</span><br></pre></td></tr></table></figure>
+<p>于是就可以用来实现Curry函数（¯﹃¯）……</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">func saySomethingTo(word: <span class="built_in">String</span>, to name: <span class="built_in">String</span>) -&gt; <span class="built_in">String</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"\(word), \(name)!"</span></span><br><span class="line">&#125;</span><br><span class="line">func curry(<span class="function"><span class="keyword">fn</span>: </span>(<span class="built_in">String</span>, <span class="built_in">String</span>) -&gt; <span class="built_in">String</span>, _ first_param: <span class="built_in">String</span>) -&gt; (<span class="built_in">String</span>) -&gt; <span class="built_in">String</span> &#123;</span><br><span class="line">    func f2(second_param: <span class="built_in">String</span>) -&gt; <span class="built_in">String</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="function"><span class="keyword">fn</span></span>(first_param, second_param)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> f2</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> sayHelloTo = curry(saySomethingTo, <span class="string">"Hello"</span>)</span><br><span class="line">sayHelloTo(<span class="string">"Jim"</span>)</span><br></pre></td></tr></table></figure>
+<p>看起来有点挫…………或许可以把它写得更像Haskell一点…………</p>
+<figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">func saySomethingTo<span class="function"><span class="params">(word: String)(_ name: String)</span> -&gt;</span> String &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"\(word), \(name)!"</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> sayHelloTo = saySomethingTo(<span class="string">"Hello"</span>)</span><br><span class="line">sayHelloTo(<span class="string">"Jim"</span>)</span><br></pre></td></tr></table></figure>
+<p>Ahhhhhhh STFU，看起来就像Haskell里的函数叠罗汉，这里的<code>saySometingTo</code>其实是一个<code>(String) -&gt; (String -&gt; String)</code>，所以它是“自带curry功能的函数”，然后Swift大概是实现了一个语法糖使得上面那个<code>name</code>参数也可以访问。</p>
+<h2 id="闭包"><a href="#闭包" class="headerlink" title="闭包"></a>闭包</h2><h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><p>在上面的第一个curry函数例子里面其实已经展示了闭包，和JS还有C#里面没有什么区别，简单的理解还是函数可以捕获它词法上下文当中的变量，即使它的父级上下文已经结束，被捕获的变量依然会存在。</p>
+<h3 id="匿名函数"><a href="#匿名函数" class="headerlink" title="匿名函数"></a>匿名函数</h3><p>C#里有两种方式来构造匿名函数，一个是C# 2.0里的“Anonymous Function”也就是匿名函数，一种是C# 3.0里面的“Lambda Expression”。貌似类似的东西在OC里面叫做代码块（block）——一听这名字就low多了是不（论起名的重要性）。</p>
+<p>Swift使用一种叫“闭包表达式（Closure Expressions）”的方式构造匿名函数，我觉得这个命名太玄了，还是习惯叫匿名函数吧。它的语法是：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123; (<span class="name">parameters</span>) -&gt; returnType in</span><br><span class="line">    statements</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>基本用法：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> testFunc: (<span class="built_in">Int</span>, <span class="built_in">Int</span>) -&gt; <span class="built_in">Int</span></span><br><span class="line">testFunc = &#123; (a: <span class="built_in">Int</span>, b: <span class="built_in">Int</span>) <span class="keyword">in</span></span><br><span class="line">    <span class="keyword">return</span> a + b</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>参数可以支持类型推导，这时候参数列表的<code>( )</code>也可以省略</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">testFunc = &#123; <span class="selector-tag">a</span>, <span class="selector-tag">b</span> <span class="keyword">in</span></span><br><span class="line">    return <span class="selector-tag">a</span> - b</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当匿名函数只有一个表达式的时候，可以用隐式返回（Implicit Return），可以不写<code>return</code></p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">testFunc</span> = &#123; a, <span class="keyword">b </span>in a * <span class="keyword">b </span>&#125;</span><br></pre></td></tr></table></figure>
+<p>像Haskell里一样丧心病狂的是，可以把运算符当函数用……</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">testFunc</span> = (/)</span><br></pre></td></tr></table></figure>
+<h3 id="尾随闭包（Trailing-Closure）"><a href="#尾随闭包（Trailing-Closure）" class="headerlink" title="尾随闭包（Trailing Closure）"></a>尾随闭包（Trailing Closure）</h3><p>当函数的最后一个参数是一个函数时，在调用的时候可以把它写在参数列表之外，形成一个很奇怪的语法结构：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">printAndDo</span><span class="params">(n: Int, then: <span class="params">(Int)</span></span></span> -&gt; <span class="type">Int</span>) -&gt; <span class="type">Int</span> &#123;</span><br><span class="line">    <span class="built_in">print</span>(n)</span><br><span class="line">    <span class="keyword">return</span> then(n)</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 传统方式</span></span><br><span class="line">printAndDo(<span class="number">100</span>, then: &#123; n <span class="keyword">in</span></span><br><span class="line">    <span class="built_in">print</span>(n)</span><br><span class="line">    <span class="keyword">return</span> n</span><br><span class="line">&#125;)</span><br><span class="line"><span class="comment">// 使用Trailing Closure</span></span><br><span class="line">printAndDo(<span class="number">100</span>) &#123; n <span class="keyword">in</span></span><br><span class="line">    <span class="built_in">print</span>(n)</span><br><span class="line">    <span class="keyword">return</span> n</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>又到了同学们都喜欢的填空题时间了，这次的题目是：然而___________</p>
+<p>如果用匿名函数来“美化”一下上面写的那个curry函数，大概是这么个样子</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">func curry(<span class="function"><span class="keyword">fn</span>: </span>(<span class="built_in">String</span>, <span class="built_in">String</span>) -&gt; <span class="built_in">String</span>, _ first_param: <span class="built_in">String</span>) -&gt; (<span class="built_in">String</span>) -&gt; <span class="built_in">String</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123; second_param <span class="keyword">in</span></span><br><span class="line">        <span class="function"><span class="keyword">fn</span></span>(first_param, second_param)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当然其实更“严肃”的curry函数也许应该是这么写</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">func curry(<span class="function"><span class="keyword">fn</span>: </span>(<span class="built_in">String</span>, <span class="built_in">String</span>) -&gt; <span class="built_in">String</span>) -&gt; (<span class="built_in">String</span> -&gt; (<span class="built_in">String</span> -&gt; <span class="built_in">String</span>)) &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123; f1 <span class="keyword">in</span></span><br><span class="line">        &#123; f2 <span class="keyword">in</span></span><br><span class="line">            <span class="function"><span class="keyword">fn</span></span>(f1, f2)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> sayHelloTo = curry(saySomethingTo)(<span class="string">"Hello"</span>)</span><br></pre></td></tr></table></figure>
+<p>甚至直接写成泛型的吧</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">func curry&lt;<span class="built_in">T1</span>, <span class="built_in">T2</span>, <span class="built_in">T3</span>&gt;(fn: (<span class="built_in">T1</span>, <span class="built_in">T2</span>) -&gt; <span class="built_in">T3</span>) -&gt; (<span class="built_in">T1</span> -&gt; (<span class="built_in">T2</span> -&gt; <span class="built_in">T3</span>)) &#123;</span><br><span class="line">    return &#123; f1 in &#123; f2 in fn(f1, f2) &#125; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>有没有觉得自己的装逼技巧又提高了？<img src="/uploads/public/tiebaxiao.gif" alt></p>
+<h1 id="to-be-continued"><a href="#to-be-continued" class="headerlink" title="to be continued"></a>to be continued</h1><p>今天先到这儿吧…………下一篇开始struct和class。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

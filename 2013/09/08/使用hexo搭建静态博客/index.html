@@ -1,0 +1,283 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>使用hexo搭建静态博客 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="hexo是一个博客程序，拥有一个简单的服务器（可以用来当简单的动态博客使用），也有生成器，生成的静态文件可以一键部署到Github Pages上，也可以部署到任意静态文件服务器上面。
+由于它相当简约，并且使用Markdown来编写文章，深得我心，于是我把博客迁移到hexo了，但是为了国内访问速度，我没有放在Github Pages上，而是选择了放在BAE上面。
+下面一步一步地说怎么用hexo搞一个博客。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="使用hexo搭建静态博客">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-09-08T04:00:00.000Z"><a href="/2013/09/08/使用hexo搭建静态博客/">Sep 8 2013</a></time>
+      
+      
+  
+    <h1 class="title">使用hexo搭建静态博客</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p><a href="http://zespia.tw/hexo/" target="_blank" rel="noopener">hexo</a>是一个博客程序，拥有一个简单的服务器（可以用来当简单的动态博客使用），也有生成器，生成的静态文件可以一键部署到Github Pages上，也可以部署到任意静态文件服务器上面。</p>
+<p>由于它相当简约，并且使用Markdown来编写文章，深得我心，于是我把博客迁移到hexo了，但是为了国内访问速度，我没有放在Github Pages上，而是选择了放在BAE上面。</p>
+<p>下面一步一步地说怎么用hexo搞一个博客。<br><a id="more"></a></p>
+<h2 id="搭环境"><a href="#搭环境" class="headerlink" title="搭环境"></a>搭环境</h2><p>hexo是用<a href="http://nodejs.org/" target="_blank" rel="noopener">node.js</a>开发的，首先需要在电脑上安装node.js，在windows用安装包是很方便的，完成后记得要把系统盘的<code>用户/AppData/Roaming/npm/</code>这个目录加到系统的<code>PATH</code>环境变量里面。</p>
+<p>在需要的地方打开命令行，这时候我们要安装hexo<br><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm <span class="keyword">install</span> -g hexo</span><br></pre></td></tr></table></figure></p>
+<p>安装了hexo后，如果之前有做<code>PATH</code>环境变量那一步操作的话，这时候就可以直接运行<code>hexo</code>这个命令了，后面的工作都要靠它。</p>
+<h2 id="新建博客"><a href="#新建博客" class="headerlink" title="新建博客"></a>新建博客</h2><p>在工作目录打开命令行，运行<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo init <span class="tag">&lt;<span class="name">目录名</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>会生成个目录，<code>cd</code>进去，可以看到很多东西，这就是一个全新的hexo博客。</p>
+<p>后面我们的命令行就都在这个新建的目录下了。</p>
+<p>运行<br><figure class="highlight axapta"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo <span class="keyword">server</span></span><br></pre></td></tr></table></figure></p>
+<p>会看到服务在<code>4000</code>端口上启动了，打开<a href="http://localhost:4000/" target="_blank" rel="noopener">http://localhost:4000/</a> 就能看到效果。</p>
+<h2 id="调整设置"><a href="#调整设置" class="headerlink" title="调整设置"></a>调整设置</h2><p>对于站点的配置基本上都在<code>_config.yaml</code>里面，其中比较重要的有</p>
+<ul>
+<li><code>title</code>, <code>subtitle</code> 这类基本信息</li>
+<li><code>language</code> 可以用<code>zh-CN</code>，这在后面的theme配置当中有作用</li>
+<li><code>url</code>, <code>root</code> 填以后要布的域名和路径</li>
+<li><code>plugins</code> 我加了一个<code>hexo-generator-feed</code>，通过<code>npm install hexo-generator-feed --save</code>安装，这样在生成的时候会自动生成<code>atom.xml</code>，用来提供别人订阅</li>
+</ul>
+<p>修改<code>_config.yaml</code>的话有时候是需要重新启动<code>hexo server</code>才能看到效果的。</p>
+<h2 id="编写文章"><a href="#编写文章" class="headerlink" title="编写文章"></a>编写文章</h2><p>这个时候的博客空空如也，如何新建文章呢？可以使用hexo提供的Scaffold（脚手架）功能。<br><figure class="highlight haxe"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo <span class="keyword">new</span> <span class="type">post</span> 文章标题</span><br></pre></td></tr></table></figure></p>
+<p>就会在<code>/source/_post</code>目录里新建一个markdown文件，这里的<code>post</code>就是普通的文章类型，看看<code>scaffolds</code>目录里，有几个类型，可以自己尝试一下。</p>
+<p>写好内容后去浏览器里刷新一下，发现<code>hexo server</code>是有自动生成功能的，可以看到新的文章。</p>
+<p>这里就和Word Press很不一样了，以前都是所见即所得的写文章，而现在是写markdown，看生成出来的效果。可能需要适应一下。</p>
+<p>如果是Word Press用户的话，可以有办法把上面的内容迁移过来。</p>
+<p>首先，需要在Word Press导出博客，会得到一个xml文件，把它拷贝到hexo博客目录下，比如叫<code>wordpress.xml</code>。</p>
+<p>安装hexo-migrator-wordpress这个插件<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm <span class="keyword">install</span> hexo-migrator-wordpress <span class="comment">--save</span></span><br></pre></td></tr></table></figure></p>
+<p>这时候运行<br><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">hexo</span> <span class="selector-tag">migrate</span> <span class="selector-tag">wordpress</span> <span class="selector-tag">wordpress</span><span class="selector-class">.xml</span></span><br></pre></td></tr></table></figure></p>
+<p>会看到导入了一些Word Press里的文章和页面，看看<code>source</code>里的文件，发现给转成了markdown格式的，这时候多半还需要一些格式微调。另外，文章里面的图片会指向原来的博客资源，文章链接也是绝对的，不嫌麻烦的话，这些东西最好也迁过来吧。我在<code>source</code>目录下建了<code>uploads</code>目录，结构基本上和之前的Word Press一模一样，所以大多数东西只用改下路径就行了。</p>
+<p>现在再刷新看看效果吧。</p>
+<p>值得一说的是，hexo对于文章分类的处理和Word Press很不一样，我原来的文章都同时属于好几个category，但hexo里的分类是纯粹树形的。所以我彻底放弃了category管理，而全部用tag。</p>
+<h2 id="部署博客"><a href="#部署博客" class="headerlink" title="部署博客"></a>部署博客</h2><p>如果你使用Github Pages来部署，会非常简单，首先当然电脑上要装了Git。在<code>_config.yaml</code>里找到<code>deploy</code>一节，<code>type</code>填<code>github</code>，写上<code>repository</code>是你在Github上的Repo地址。<br><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo deploy --<span class="keyword">generate</span></span><br></pre></td></tr></table></figure></p>
+<p>这时候会先进行一次完整生成，然后会自动部署到Github的<code>gh-pages</code>分支上面。为了管理博客源代码，可以把整个hexo目录放在对应Repo的<code>master</code>分支上，然后就像管理一般的开源项目一样处理就好了。</p>
+<p>我不使用Github Pages来放，是因为部署上去要等10来分钟才能看到效果，而且国内速度比较一般。</p>
+<p>如果你有网站空间，静态空间就可以，那么运行<br><figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo <span class="keyword">generate</span></span><br></pre></td></tr></table></figure></p>
+<p>后，把<code>public</code>目录的内容扔到你的空间上去就行了。</p>
+<p>后面我会再说下怎么弄到BAE上。</p>
+<h2 id="调整样式"><a href="#调整样式" class="headerlink" title="调整样式"></a>调整样式</h2><p>默认的theme叫light，已经很不错了，但是有的内容不大“符合国情”，所以需要进行一些调整。</p>
+<p>主题都在<code>themes</code>目录下面，按主题名字分，可以在<code>_config.yaml</code>里选择喜欢的主题，改个配置就行。可以在官方网站上找到其他主题，数量不多，但是都挺精彩的，下载下来放在<code>themes</code>目录里就行。</p>
+<p>打开<code>/themes/light/_config.yaml</code>可以看见里面也有一些主题自己的配置，这主题配置说起来话就长了，捡重点的。</p>
+<p><code>menu</code>是配置右上角的链接，如果你加了一个<code>page</code>，那么是需要在这里配进去才能看到的。</p>
+<p><code>addthis</code>我给去掉了，因为都是些外国的社交网站，似乎没啥搞头。</p>
+<p>至于我的博客右边那堆widget，一部分是light自带的，一部分是我自己开发的。我已经把light的Github分支给fork出来了，有兴趣可以去<a href="https://github.com/LiuJi-Jim/hexo-theme-light" target="_blank" rel="noopener">看看</a>，如果用那个分支的代码的话，下面的这堆修改已经都整合进去了，瞟一眼就明白了。</p>
+<p>light主题自带Google Analytics支持，但我没用GA所以没研究。为了使用百度统计，我在<code>layout/_partial/after_footer.ejs</code>里加入了百度统计的代码。</p>
+<p>Word Press有评论功能，而静态博客的评论咋搞呢？我使用了<a href="http://duoshuo.com/" target="_blank" rel="noopener">多说</a>社会化评论框，号称社会化，其实就是和微博这类的社交网络有一定的关联性。</p>
+<p>如何申请使用多说评论框，我就不多说了，下面说下如何在light主题里面安装。</p>
+<p>首先在<code>layout/_partial/</code>下新建一个<code>duoshuo.ejs</code>，内容如下：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Duoshuo Comment BEGIN --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"ds-thread"</span> <span class="attr">data-title</span>=<span class="string">"&lt;%= item.title %&gt;"</span> <span class="attr">data-url</span>=<span class="string">"&lt;%- item.permalink %&gt;"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span></span><br><span class="line"><span class="actionscript"><span class="keyword">var</span> duoshuoQuery = &#123;short_name:<span class="string">"jimliu-net"</span>&#125;;</span></span><br><span class="line"><span class="actionscript">(<span class="function"><span class="keyword">function</span><span class="params">()</span> </span>&#123;</span></span><br><span class="line"><span class="javascript">    <span class="keyword">var</span> ds = <span class="built_in">document</span>.createElement(<span class="string">'script'</span>);</span></span><br><span class="line"><span class="actionscript">    ds.type = <span class="string">'text/javascript'</span>;ds.async = <span class="literal">true</span>;</span></span><br><span class="line"><span class="actionscript">    ds.src = <span class="string">'http://static.duoshuo.com/embed.js'</span>;</span></span><br><span class="line"><span class="actionscript">    ds.charset = <span class="string">'UTF-8'</span>;</span></span><br><span class="line"><span class="javascript">    (<span class="built_in">document</span>.getElementsByTagName(<span class="string">'head'</span>)[<span class="number">0</span>] </span></span><br><span class="line"><span class="javascript">    || <span class="built_in">document</span>.getElementsByTagName(<span class="string">'body'</span>)[<span class="number">0</span>]).appendChild(ds);</span></span><br><span class="line">&#125;)();</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- Duoshuo Comment END --&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>基本上就是在多说网站上拿到的<code>通用代码</code>，在第二行上我加入了<code>data-title</code>和<code>data-url</code>，用来给多说传一些参数。<br><code>data-url</code>这个参数可以让多个域名上的文章评论共享，只要同一篇文章的<code>data-url</code>固定就可以。例如<code>blog.jimliu.net</code>和<code>jimliu.net</code>上文章的<code>data-url</code>都是<code>http://jimliu.net/xxxxxxx</code>这样两个域名就可以共享评论了。<br>第四行的<code>short_name</code>是自己多说代码独有的，不要照抄哦。</p>
+<p>接下来在<code>layout/post.ejs</code>下面，加入一行<br><figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;%- partial(<span class="string">'_partial/duoshuo'</span>, &#123;<span class="string">item:</span> page, <span class="string">index:</span> <span class="literal">false</span>&#125;) %&gt;</span><br></pre></td></tr></table></figure></p>
+<p>就能在文章页面看到评论框了，如果想在其他<code>page</code>，例如我博客右上角那个“About、Feedback”里面也看到的话，对<code>layout/page.ejs</code>如法炮制即可。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

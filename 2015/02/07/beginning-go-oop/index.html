@@ -1,0 +1,273 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>一个伪前端的Go入门——面向对象编程篇 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="伟大领袖毛主席说，烂尾是不好的。虽然学习Go对我而言多半是玩票性质的，但是既然坑已经挖了就还是先安心填吧，反正快过年了，年前尽量就不要留遗憾了嘛对不对。
+这一篇将主要介绍Go当中的类型系统和面向对象编程实现。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="一个伪前端的Go入门——面向对象编程篇">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-02-07T09:42:34.000Z"><a href="/2015/02/07/beginning-go-oop/">Feb 7 2015</a></time>
+      
+      
+  
+    <h1 class="title">一个伪前端的Go入门——面向对象编程篇</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>伟大领袖毛主席说，烂尾是不好的。虽然学习Go对我而言多半是玩票性质的，但是既然坑已经挖了就还是先安心填吧，反正快过年了，年前尽量就不要留遗憾了嘛对不对。</p>
+<p>这一篇将主要介绍Go当中的类型系统和面向对象编程实现。</p>
+<a id="more"></a>
+<p>任何面向对象（或近似于面向对象）编程语言，只要理解了它的类型系统，基本上它的面向对象方法论就能闹明白了。</p>
+<h2 id="基础概念"><a href="#基础概念" class="headerlink" title="基础概念"></a>基础概念</h2><p>一个典型的面向对象语言的类型系统通常都会包含以下几个概念：</p>
+<ul>
+<li>基础数据类型：如整数、浮点数、布尔、字符串等</li>
+<li>复杂数据类型：如数组、struct/class、指针等</li>
+<li>“万物之源”类型：如Java/C#里面的<code>Object</code>类型</li>
+</ul>
+<h2 id="类型约束"><a href="#类型约束" class="headerlink" title="类型约束"></a>类型约束</h2><p>以上概念只是对类型本身的分类，而在对类型的约束方面，可体现出一门语言的面向对象方法论。例如：</p>
+<p>C++中没有“万物之源”类型，也没有接口。在函数签名中指定class是它主要的类型约束方式，使用template进行元编程可以当一点duck typing来看（不严谨）。</p>
+<p>C#和Java中的“万物之源”类型是<code>Object</code>，这一点上C#更彻底，因为它的基础数据类型也继承<code>Object</code>而在Java里则不是。C#和Java都有interface，使用class/interface是最常见的类型约束方式。除了在函数签名中约束，C#强大的泛型编程还支持在定义泛型类型的时候约束。</p>
+<p>JavaScript中有一个看起来很像“万物皆为对象”类型的<code>Object</code>，但其实它并不是所有类型的源头，这并不是很严谨。JS反正运行时访问不存在的字段就报错，这带来了不少工程化上的劣势，但是确实也增加了很多编程的灵活性。毕竟动态语言和静态语言的思路还是不一样的。</p>
+<p>由于实际生产中的JS常常会用类似<code>if (typeof obj.method === &#39;function&#39;)</code>来判断一个对象是否包含某个方法/字段，我们可以不严谨地认为JS的类型约束一方面是靠君子协议，一方面是靠“运行时手工duck typing”。</p>
+<h2 id="Go中的结构体"><a href="#Go中的结构体" class="headerlink" title="Go中的结构体"></a>Go中的结构体</h2><p>基础数据类型和复杂数据类型在前作中已经介绍过了，这里就不多唠叨了。</p>
+<p>Go没有class只有struct，不过其struct上也可以定义方法，但看起来很不一样。C++/C#/Java都是在定义一个class的时候就给它定义方法，直观的感受就是成员方法都会在<code>class XXX {}</code>的那一对大括号里面。而Go中struct的成员方法则都是“后来”添加上去的。例如</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义一个Person类型</span></span><br><span class="line"><span class="keyword">type</span> Person <span class="keyword">struct</span> &#123;</span><br><span class="line">  Name  <span class="keyword">string</span></span><br><span class="line">  Age <span class="keyword">int</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 为Person类型添加一个成员方法introduce</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(this Person)</span> <span class="title">Introduce</span><span class="params">()</span></span> &#123;</span><br><span class="line">  fmt.Println(<span class="string">"My name is"</span>, this.Name, <span class="string">"and I'm"</span>, this.Age);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的代码就是给现有类型添加成员方法的办法，参数里虽然叫<code>this</code>但其实只是图这个名字比较熟悉而已，并不是固定的。</p>
+<h2 id="继承"><a href="#继承" class="headerlink" title="继承"></a>继承</h2><p>Go里没有继承，它用了一种称为“匿名组合”的方式来满足对继承的需要，大概可以理解为<code>Mixin</code>吧。例如</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义一个Coder类型，让它“继承”Person</span></span><br><span class="line"><span class="keyword">type</span> Coder <span class="keyword">struct</span> &#123;</span><br><span class="line">  Person</span><br><span class="line">  APM <span class="keyword">float32</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 为Coder类型添加成员方法coding</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(this Coder)</span> <span class="title">Coding</span><span class="params">()</span></span> &#123;</span><br><span class="line">  <span class="keyword">if</span> this.APM &lt; <span class="number">100</span> &#123;</span><br><span class="line">    fmt.Println(this.Person.Name, <span class="string">"is coding slowly"</span>);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    fmt.Println(this.Person.Name, <span class="string">"is coding fast"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">jim := Coder&#123;Person&#123;<span class="string">"Jim Liu"</span>, <span class="number">18</span>&#125;, <span class="number">300</span>&#125;;</span><br><span class="line">jim.Introduce();</span><br><span class="line">jim.Coding();</span><br></pre></td></tr></table></figure>
+<p>这样就让<code>Coder</code>“继承”了<code>Person</code>。</p>
+<h2 id="接口"><a href="#接口" class="headerlink" title="接口"></a>接口</h2><p>在C#和Java中定义接口，可以用来进行进行类型约束，接口实现表达的是<code>can-do</code>语义，比类型继承的<code>is-a</code>语义更加灵活。</p>
+<p>Go里也使用接口<code>interface</code>来约束类型，不过比C#和Java里的要灵活一些。</p>
+<h3 id="定义接口"><a href="#定义接口" class="headerlink" title="定义接口"></a>定义接口</h3><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">type IGreetable<span class="built_in"> interface </span>&#123;</span><br><span class="line">  Greeting(name string)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>很简单就是写上函数签名。接口可以组合，就像对<code>struct</code>进行匿名组合一样，对<code>interface</code>也可以进行匿名组合。</p>
+<h3 id="实现接口"><a href="#实现接口" class="headerlink" title="实现接口"></a>实现接口</h3><p>C#/Java中一个类型要实现一个接口，需要在声明类型的时候连带声明它实现了哪些接口，然后挨个实现接口所声明的方法，否则编译器会无情拒绝。</p>
+<p>上面说到由于Go的成员方法是在<code>struct</code>定义之后才添加上去的，那么一个<code>struct</code>怎么才算实现一个接口呢？Go用了一种我个人称它叫“编译时duck typing”的约束，就是说一个<code>struct</code>只要它拥有的成员函数满足一个<code>interface</code>的定义，那它就可以满足该接口的约束，例如：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(this Person)</span> <span class="title">Greeting</span><span class="params">(name <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">  fmt.Println(<span class="string">"Hello"</span>, name);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样就让<code>Person</code>实现了<code>IGreetable</code>接口，可以<code>var gre IGreetable = Coder{Person{&quot;Jim Liu&quot;, 18}, 300};</code>了。</p>
+<p>Go中的“万物之源”类型就是空接口<code>interface{}</code>，这个……在网上基本对它都是贬义，因为它就像C/C++里面的<code>void*</code>一样泛滥。</p>
+<h2 id="泛型"><a href="#泛型" class="headerlink" title="泛型"></a>泛型</h2><p>为什么<code>interface{}</code>会泛滥？因为Go没有泛型。我了个去，作为一门现代静态语言竟然没有泛型？没有泛型的情况下，<code>interface{}</code>就很容易满天飞。</p>
+<p>与此同时，安全的类型转换也是有必要的，在C#中做安全类型转换可以这么做：</p>
+<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ICodable coder = person <span class="keyword">as</span> ICodable;</span><br><span class="line"><span class="keyword">if</span> (coder != <span class="literal">null</span>) &#123;</span><br><span class="line">  coder.Coding();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Go搞了一个叫“接口查询”的东西，跟上面比较像</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">tryCoding</span><span class="params">(person IGreetable)</span></span> &#123;</span><br><span class="line">  <span class="keyword">if</span> coder, ok := person.(ICodable); ok &#123;</span><br><span class="line">    coder.Coding();</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    fmt.Println(<span class="string">"Oops, not a coder."</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面代码里那个<code>person.(ICodable)</code>就是一个“接口查询”，这个嘛我觉得倒是挺恶心的。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Go虽然没有常见的class、继承、虚函数等概念，但是通过匿名组合大概实现了继承和虚函数的效果。</p>
+<p>Go的接口是先定义后实现的，这样一旦定义了一个新接口，只要它的签名和某些已有类型能match上，那么旧类型也可以当新接口实例来用，比较灵活。</p>
+<p>Go没有泛型，少了一种现代静态语言的元编程和类型约束的利器，真是啧啧啧，这个实在不应该，不知道以后打不打算引入。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

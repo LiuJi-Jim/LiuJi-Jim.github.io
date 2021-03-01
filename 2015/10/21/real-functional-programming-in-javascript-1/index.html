@@ -1,0 +1,358 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>使用JavaScript实现“真·函数式编程” | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="其实这篇文章有点标题党了，因为函数式编程是一个非常大的课题。而标题里的“真”听起来就有一股浓浓的中二气息。
+没错，这篇文章是函数式装逼系列（1）（2）的进阶版。函数式编程是很火的，然而现在网上很多入门级的JS函数式编程教程（甚至书）都太水了，以为用用forEach用用map用用reduce用用immutable就叫函数式编程了。
+
+Too young. Too simple.
+
+本着搞一个大新闻的目的，我又开了这个无底天坑。当然一切都是从学习与娱乐的目的出发（这两件事其实并不冲突嘛），请勿评论本文中代码的实用价值。
+瑞迪？黑喂狗！">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="使用JavaScript实现“真·函数式编程”">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-10-21T15:33:33.000Z"><a href="/2015/10/21/real-functional-programming-in-javascript-1/">Oct 21 2015</a></time>
+      
+      
+  
+    <h1 class="title">使用JavaScript实现“真·函数式编程”</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>其实这篇文章有点标题党了，因为函数式编程是一个非常大的课题。而标题里的“真”听起来就有一股浓浓的中二气息。</p>
+<p>没错，这篇文章是函数式装逼系列<a href="/2015/10/14/curry-function-in-es6/">（1）</a><a href="/2015/10/15/functional-reverse-in-es6/">（2）</a>的进阶版。函数式编程是很火的，然而现在网上很多入门级的JS函数式编程教程（甚至书）都太水了，以为用用<code>forEach</code>用用<code>map</code>用用<code>reduce</code>用用<code>immutable</code>就叫函数式编程了。</p>
+<blockquote>
+<p>Too young. Too simple.</p>
+</blockquote>
+<p>本着搞一个大新闻的目的，我又开了这个无底天坑。当然一切都是从学习与娱乐的目的出发（这两件事其实并不冲突嘛），请勿评论本文中代码的实用价值。</p>
+<p>瑞迪？黑喂狗！</p>
+<a id="more"></a>
+<h1 id="0-开篇"><a href="#0-开篇" class="headerlink" title="0. 开篇"></a>0. 开篇</h1><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>要实现“真·函数式编程”，就要玩的彻底一点，必须<del>挥刀自宫</del>先禁用JavaScript里的大量语言特性，目前我能想到的有：</p>
+<ol>
+<li>禁用<code>var</code>/<code>let</code>，所有东西都用<code>const</code>定义，也就是说<strong>无变量</strong>，强制immutable。</li>
+<li>禁用分号，也就是<strong>不让“顺序执行”，解除过程式编程范式</strong>。<del>你不是不爱写分号吗，这次彻底不需要写了</del></li>
+<li>禁用<code>if/else</code>，但允许用<strong>条件表达式</strong><code>condition ? expr1 : expr2</code>。</li>
+<li>禁用<code>for/while/do-while</code>。</li>
+<li>禁用<code>prototype</code>和<code>this</code>来<strong>解除JS中的面向对象编程范式</strong>。</li>
+<li>禁用<code>function</code>和<code>return</code>关键字，<strong>仅用lambda表达式来编程</strong>（JS里叫箭头函数）。</li>
+<li>禁用多参数函数，只允许使用单个参数，相当于<strong>强行curry化</strong></li>
+</ol>
+<p>但是为了更可读（其实也可读不到哪去），我们允许使用大量ES6的新特性，比如箭头函数（lambda表达式）、解构、参数解构等等。如果你想玩这些特性，建议使用最新版的Firefox，或者node.js 4.0或更高版本加上<code>--harmony --harmony_modules --harmony_destructuring</code>等参数。</p>
+<p>因为文中会用到一些ES6的特性，可能有的同学还不太清楚，所以这里花一小点篇幅简单的挑重点介绍一下：</p>
+<h2 id="箭头函数"><a href="#箭头函数" class="headerlink" title="箭头函数"></a>箭头函数</h2><p>其他语言里面一般叫做<strong>lambda表达式</strong>，其实我个人当然是喜欢这个名字，但是因为ES6的语言规范里就把它管叫箭头函数，自然文中还是会尽量这么说。</p>
+<p>箭头函数的基本定义方式是：</p>
+<figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(参数列表) =&gt; &#123;</span><br><span class="line">    函数体</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当只有一个参数的时候，可以省略括号，写成</p>
+<figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">参数名 =&gt; &#123;</span><br><span class="line">    函数体 </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当函数体是一个表达式（而不是段落）的时候，可以隐式<code>return</code>，写成</p>
+<figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">参数名 =&gt; 返回表达式</span><br></pre></td></tr></table></figure>
+<p>由于我们的“真·函数式编程”是禁用过程式编程的，不存在段落，于是你可以见到下文中几乎所有的箭头函数都是最简单的形式，例如<code>x =&gt; x * 2</code>。</p>
+<p>箭头函数可以返回函数，并且在返回函数的时候，它也可以隐式<code>return</code>，因此可以像haskell一样构建curry风格的函数，如</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> add = <span class="function"><span class="params">x</span> =&gt;</span> <span class="function"><span class="params">y</span> =&gt;</span> x + y</span><br></pre></td></tr></table></figure>
+<p>用传统的风格来“翻译”上面的<code>add</code>函数，就是</p>
+<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add</span><span class="params">(x)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="function"><span class="keyword">function</span><span class="params">(y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> x + y</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用的时候自然也是使用curry风格的逐个传参<code>add(5)(3)</code>，结果就是8。</p>
+<h2 id="解构"><a href="#解构" class="headerlink" title="解构"></a>解构</h2><p>解构是现代编程语言当中一个非常非常甜的语法糖，有时候我们为了实现多返回值，可能会返回一个数组，或者一个KV，这里以数组为例</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> pair = <span class="function"><span class="params">a</span> =&gt;</span> <span class="function"><span class="params">b</span> =&gt;</span> [a, b]</span><br></pre></td></tr></table></figure>
+<p>我们可以用解构一次性将数组中的元素分别赋值到多个变量如</p>
+<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> [a, b] = pair(<span class="string">'first'</span>)(<span class="string">'second'</span>) <span class="comment">// a是'first'，b是'second'</span></span><br></pre></td></tr></table></figure>
+<p><strong>参数结构</strong>就是在定义函数参数的时候使用结构</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">const add = ([<span class="selector-tag">a</span>, b]) =&gt; <span class="selector-tag">a</span> + b</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">add</span><span class="params">([<span class="number">5</span>, <span class="number">3</span>])</span></span></span><br></pre></td></tr></table></figure>
+<p>在<code>add</code>函数里面，数组<code>[5, 3]</code>可以被自动解构成<code>a</code>和<code>b</code>两个值。数组解构有一个高级的“剩余值”用法：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">const</span> <span class="string">[first,</span> <span class="string">...rest]</span> <span class="string">=</span> <span class="string">[1,</span> <span class="number">2</span><span class="string">,</span> <span class="number">3</span><span class="string">,</span> <span class="number">4</span><span class="string">,</span> <span class="number">5</span><span class="string">]</span> <span class="string">//</span> <span class="string">first是1，rest是[2,</span> <span class="number">3</span><span class="string">,</span> <span class="number">4</span><span class="string">,</span> <span class="number">5</span><span class="string">]</span></span><br></pre></td></tr></table></figure>
+<p>可以把“剩余值”解构到一个数组，这里叫<code>rest</code>。</p>
+<p>关于解构语法的更多趣闻，可以看看<a href="/2015/06/09/trap-in-es6-destructuring-syntax/">我之前的一篇博客</a>。</p>
+<hr>
+<p>OK，前戏就到这里，下面进入主题。</p>
+<h1 id="1-实现循环"><a href="#1-实现循环" class="headerlink" title="1. 实现循环"></a>1. 实现循环</h1><h2 id="实现for循环遍历数组"><a href="#实现for循环遍历数组" class="headerlink" title="实现for循环遍历数组"></a>实现for循环遍历数组</h2><p>命令式编程当中，循环是最基本的控制流结构之一了，基本的<code>for</code>循环大概是这样：</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">for <span class="params">(var <span class="attr">i</span> = 0; i &lt; arr.length; i++)</span> &#123;</span><br><span class="line">    <span class="string">//</span> <span class="string">...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看见了<code>var i</code>和<code>i++</code>了吗？因为不让用变量，所以在“真·函数式编程”当中，这样做是行不通的。</p>
+<p><strong>函数式语言当中使用递归实现循环</strong>。首先拆解一下循环的要素：</p>
+<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">for (初始化<span class="comment">; 终止条件; 迭代操作) &#123;</span></span><br><span class="line">    迭代体</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用递归来实现的话，无外乎也就是把迭代终止换成递归终止。也就是说，只要有上面4个要素，就可以构造出<code>for</code>循环。首先将问题简化，我们只想遍历一个数组，首先定义一个迭代函数<code>loop</code></p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">loop_on_array</span><span class="params">(arr, body, i)</span> &#123;</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">i</span> &lt; arr.<span class="built_in">length</span>) &#123;</span><br><span class="line">        body(arr[<span class="built_in">i</span>])</span><br><span class="line">        loop_on_array(arr, body, <span class="built_in">i</span> + <span class="number">1</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的函数有几个地方不满足“真·函数式编程”的需要：</p>
+<ol start="0">
+<li>使用了<code>function</code>定义：这个最简单，改成箭头函数就行了</li>
+<li>使用了多个参数：这个可以简单的通过curry化来解决</li>
+<li>使用了<code>if/else</code>：这个可以简单的通过条件表达式来解决</li>
+<li>使用了顺序执行，也就是<code>body(i)</code>和<code>loop(arr, body, i + 1)</code>这两句代码使用了顺序执行</li>
+</ol>
+<p>为了解除顺序执行，我们可以使用像“回调函数”一样的思路来解决这个问题，也就是说让<code>body</code>多接收一个参数<code>next</code>，表示它执行完后的下一步操作，<code>body</code>将会把自己的返回值以参数的形式传给<code>next</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> body = <span class="function"><span class="params">item</span> =&gt;</span> <span class="function"><span class="params">next</span> =&gt;</span></span><br><span class="line">    next(do_something_with(item))</span><br></pre></td></tr></table></figure>
+<p>这样需要修改<code>body</code>是不爽的，因此可以将其进行抽象，我们写一个<code>two_steps</code>函数来组合两步操作</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> two_steps = <span class="function"><span class="params">step1</span> =&gt;</span> <span class="function"><span class="params">step2</span> =&gt;</span> <span class="function"><span class="params">param</span> =&gt;</span></span><br><span class="line">    step2(step1(param))</span><br></pre></td></tr></table></figure>
+<p>这样，上面的两行顺序执行代码就变成了</p>
+<figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">two_steps (<span class="name">body</span>) (<span class="name">_</span> =&gt; loop_on_array(<span class="name">arr</span>, body, i + <span class="number">1</span>)) (<span class="name">arr</span>[i])</span><br></pre></td></tr></table></figure>
+<p>注意中间那个参数它是一个函数，而并不是直接<code>loop(arr, body, i + 1)</code>，它所接收的是<code>body(arr[i])</code>的结果，但是它并不需要这个结果。函数式语言当中常常用<code>_</code>来表示忽略不用的参数，我们的“真·函数式编程”也会保留这个习惯。</p>
+<p>这样通过<code>two_steps</code>来让两步操作能够顺序执行了，我们可以完成遍历数组的函数了</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> loop_on_array = <span class="function"><span class="params">arr</span> =&gt;</span> <span class="function"><span class="params">body</span> =&gt;</span> <span class="function"><span class="params">i</span> =&gt;</span></span><br><span class="line">    i &lt; arr.length ?</span><br><span class="line">    two_steps (body) (<span class="function"><span class="params">_</span> =&gt;</span> loop_on_array(arr)(body)(i + <span class="number">1</span>)) (arr[i]) :</span><br><span class="line">    <span class="literal">undefined</span></span><br></pre></td></tr></table></figure>
+<p>调用的时候就是</p>
+<figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">loop_on_array ([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]) (<span class="name">item</span> =&gt; console.log(<span class="name">item</span>)) (<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<p>但是你会发现最后那个<code>(0)</code>其实是很丑的对吧，毕竟它总是0，还不能省略，所以我们还是可以通过构造一个新的函数来抽取递归内容</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> _loop = <span class="function"><span class="params">arr</span> =&gt;</span> <span class="function"><span class="params">body</span> =&gt;</span> <span class="function"><span class="params">i</span> =&gt;</span></span><br><span class="line">    <span class="comment">// 原来的loop_on_array的内容</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> loop_on_array = <span class="function"><span class="params">arr</span> =&gt;</span> <span class="function"><span class="params">body</span> =&gt;</span> _loop(arr)(body)(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 调用</span></span><br><span class="line">loop_on_array ([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]) (<span class="function"><span class="params">item</span> =&gt;</span> <span class="built_in">console</span>.log(item))</span><br></pre></td></tr></table></figure>
+<p><img src="/uploads/public/perfect.jpg" alt></p>
+<h2 id="实现map"><a href="#实现map" class="headerlink" title="实现map"></a>实现map</h2><p>在上面的遍历的代码里，我们用<code>for</code>循环的套路来实现了对一个数组的遍历。这个思想其实还不算特别functional，要让它逼格更高，不妨从<code>map</code>这个函数来考虑。</p>
+<p><code>map</code>就是把一个数组<code>arr</code>通过函数<code>f</code>映射成另一个数组<code>result</code>，在Haskell里面<code>map</code>的经典定义方式是</p>
+<figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">map</span> :: <span class="function"><span class="params">(a -&gt; b)</span> -&gt;</span> [a]<span class="function"> -&gt;</span> [b]</span><br><span class="line"><span class="keyword">map</span> f []     = []</span><br><span class="line"><span class="keyword">map</span> f (x:xs) = f x : <span class="keyword">map</span> f xs</span><br></pre></td></tr></table></figure>
+<p>简单的说就是：</p>
+<ol>
+<li>对于空数组，<code>map</code>返回的结果是空数组</li>
+<li>对于非空数组，将第一个元素使用f进行映射，结果作为返回值（数组）的第一个元素，再对后面的剩余数组递归调用<code>map f xs</code>，作为返回值（数组）的剩余部分</li>
+</ol>
+<p>直接将上面的代码“翻译”成JS的话，大概是这个样子</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> map = <span class="function"><span class="params">f</span> =&gt;</span> <span class="function"><span class="params">arr</span> =&gt;</span></span><br><span class="line">    arr.length === <span class="number">0</span> ?</span><br><span class="line">    [] :</span><br><span class="line">    [f(arr[<span class="number">0</span>])].concat(map(f)(arr.slice(<span class="number">1</span>)))</span><br></pre></td></tr></table></figure>
+<p>利用解构语法来简化的话大概是这个样子</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> map = <span class="function"><span class="params">f</span> =&gt;</span> <span class="function">(<span class="params">[x, ...xs]</span>) =&gt;</span></span><br><span class="line">    x === <span class="literal">undefined</span> ?</span><br><span class="line">    [] :</span><br><span class="line">    [f(x), ...map(f)(xs)]</span><br></pre></td></tr></table></figure>
+<p>至于<code>map</code>的用法大家其实都是比较熟悉的了，这里就只做一个简单的例子</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">const</span> <span class="string">double</span> <span class="string">=</span> <span class="string">arr</span> <span class="string">=&gt;</span></span><br><span class="line">    <span class="string">map(x</span> <span class="string">=&gt;</span> <span class="string">x</span> <span class="string">*</span> <span class="number">2</span><span class="string">)(arr)</span></span><br><span class="line"></span><br><span class="line"><span class="string">double([1,</span> <span class="number">2</span><span class="string">,</span> <span class="number">3</span><span class="string">,</span> <span class="number">4</span><span class="string">,</span> <span class="number">5</span><span class="string">])</span> <span class="string">//</span> <span class="string">结果是[2,</span> <span class="number">4</span><span class="string">,</span> <span class="number">6</span><span class="string">,</span> <span class="number">8</span><span class="string">,</span> <span class="number">10</span><span class="string">]</span></span><br></pre></td></tr></table></figure>
+<h2 id="实现sum"><a href="#实现sum" class="headerlink" title="实现sum"></a>实现sum</h2><p>接下来需要实现一个<code>sum</code>函数，对一个数组中的所有元素求和，有了<code>map</code>的递归思想，很容易写出来<code>sum</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> sum = <span class="function"><span class="params">accumulator</span> =&gt;</span> <span class="function">(<span class="params">[x, ...xs]</span>) =&gt;</span></span><br><span class="line">    x === <span class="literal">undefined</span> ?</span><br><span class="line">    accumulator :</span><br><span class="line">    sum (x + accumulator) (xs)</span><br><span class="line"></span><br><span class="line">sum (<span class="number">0</span>) ([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]) <span class="comment">// 结果是15</span></span><br></pre></td></tr></table></figure>
+<p>依然会发现那个<code>(0)</code>传参是无比丑陋的，用一开始那个<code>loop_on_array</code>相同的思想提取一个函数</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> _sum = <span class="function"><span class="params">accumulator</span> =&gt;</span> <span class="function">(<span class="params">[x, ...xs]</span>) =&gt;</span></span><br><span class="line">    x === <span class="literal">undefined</span> ?</span><br><span class="line">    accumulator :</span><br><span class="line">    _sum (x + accumulator) (xs)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> sum = <span class="function"><span class="params">xs</span> =&gt;</span> _sum (<span class="number">0</span>) (xs)</span><br></pre></td></tr></table></figure>
+<p>计划通。</p>
+<h2 id="实现reduce"><a href="#实现reduce" class="headerlink" title="实现reduce"></a>实现reduce</h2><p>比较<code>map</code>和<code>sum</code>可以发现事实上他们是非常相似的：</p>
+<ol>
+<li>都是把数组拆解为<strong>（头，剩余）</strong>这个模式</li>
+<li>都有一个“累加器”，在<code>sum</code>中体现为一个用来不断求和的数值，在<code>map</code>中体现为一个不断被扩充的数组</li>
+<li>都通过“对头部执行操作，将结果与累加器进行结合”这样的模式来进行迭代</li>
+<li>都以空数组为迭代的终点</li>
+</ol>
+<p>也许你觉得上面的<code>map</code>实现并不是这个模式的，事实上它是的，不放把<code>map</code>按照这个模式重新实现一下</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> _map = <span class="function"><span class="params">f</span> =&gt;</span> <span class="function"><span class="params">accumulator</span> =&gt;</span> <span class="function">(<span class="params">[x, ...xs]</span>) =&gt;</span></span><br><span class="line">    x === <span class="literal">undefined</span> ?</span><br><span class="line">    accumulator :</span><br><span class="line">    _map (f) ([...accumulator, f(x)]) (xs)</span><br><span class="line"><span class="keyword">const</span> map = <span class="function"><span class="params">f</span> =&gt;</span> <span class="function"><span class="params">xs</span> =&gt;</span> _map (f) ([]) (xs)</span><br><span class="line"></span><br><span class="line">map(<span class="function"><span class="params">x</span> =&gt;</span> x * <span class="number">2</span>)([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>])</span><br></pre></td></tr></table></figure>
+<p>和<code>sum</code>的模式惊人的一致对么？这就是所谓的<code>foldr</code>，<code>foldr</code>是一个对这种迭代模式的抽象，我们把它简单的描述成：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// foldr :: (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b</span></span><br><span class="line"><span class="keyword">const</span> foldr = <span class="function"><span class="params">f</span> =&gt;</span> <span class="function"><span class="params">accumulator</span> =&gt;</span> <span class="function">(<span class="params">[x, ...xs]</span>) =&gt;</span></span><br><span class="line">    x === <span class="literal">undefined</span> ?</span><br><span class="line">    accumulator :</span><br><span class="line">    f (x) (foldr(f)(accumulator)(xs))</span><br></pre></td></tr></table></figure>
+<p>其中<code>f</code>是一个“fold函数”，接收两个参数，第一个参数是“当前值”，第二个参数是“累加器”，<code>f</code>返回一个更新后的“累加器”。<code>foldr</code>会在数组上迭代，不断调用<code>f</code>以更新累加器，直到遇到空数组，迭代完成，则返回累加器的最后值。</p>
+<p>下面我们用<code>foldr</code>来分别实现<code>map</code>和<code>sum</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> map = <span class="function"><span class="params">f</span> =&gt;</span> foldr (<span class="function"><span class="params">x</span> =&gt;</span> <span class="function"><span class="params">acc</span> =&gt;</span> [f(x), ...acc]) ([])</span><br><span class="line"><span class="keyword">const</span> sum = foldr (<span class="function"><span class="params">x</span> =&gt;</span> <span class="function"><span class="params">acc</span> =&gt;</span> x + acc) (<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">map (<span class="function"><span class="params">x</span> =&gt;</span> x * <span class="number">2</span>) ([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]) <span class="comment">// 结果是[2, 4, 6, 8, 10]</span></span><br><span class="line">sum ([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]) <span class="comment">// 结果是15</span></span><br></pre></td></tr></table></figure>
+<p>这时候你会发现foldr的定义其实就是JavaScript里自带的<code>reduce</code>函数，没错这俩定义是一样的，通过<code>foldr</code>或者说叫<code>reduce</code>抽象，我们实现了对数组的“有状态遍历”，相比于上面的<code>loop_on_array</code>则是“无状态遍历”，因为“累加器”作为状态，是在不断的被修改的（严格的说它不是被修改了，而是用一个新值取代了它）。</p>
+<p>用<code>foldr</code>实现的<code>sum</code>非常形象，就像把摊成一列的扑克牌一张一张叠起来一样。</p>
+<p>“有状态”当然可以实现“无状态”，不care状态不就行了吗，所以使用<code>foldr</code>来实现<code>loop_on_array</code>也是完全没问题的</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> loop_on_array = <span class="function"><span class="params">f</span> =&gt;</span> foldr(<span class="function"><span class="params">x</span> =&gt;</span> <span class="function"><span class="params">_</span> =&gt;</span> f(x)) (<span class="literal">undefined</span>)</span><br><span class="line"></span><br><span class="line">loop_on_array (<span class="function"><span class="params">x</span> =&gt;</span> <span class="built_in">console</span>.log(x)) ([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>])</span><br></pre></td></tr></table></figure>
+<p>呃，等等，为什么输出顺序是反的？是54321呢？很明显<code>foldr</code>中的<code>r</code>就表示它是“右折叠”，从递归的角度很好理解，无外乎<strong>先进后出</strong>嘛。所以要实现“左折叠”自然也有<code>foldl</code>函数（这里的左折叠右折叠表示折叠的起始方向，就跟东风北风一个道理）：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// foldl :: (b -&gt; a -&gt; b) -&gt; b -&gt; [a] -&gt; b</span></span><br><span class="line"><span class="keyword">const</span> foldl = <span class="function"><span class="params">f</span> =&gt;</span> <span class="function"><span class="params">accumulator</span> =&gt;</span> <span class="function">(<span class="params">[x, ...xs]</span>) =&gt;</span></span><br><span class="line">    x === <span class="literal">undefined</span> ?</span><br><span class="line">    accumulator :</span><br><span class="line">    foldl (f) (f(accumulator)(x)) (xs)</span><br></pre></td></tr></table></figure>
+<p>用它重新实现<code>loop_on_array</code>，注意这次<code>f</code>的参数顺序和<code>foldr</code>是相反的，这次是<code>accumulator</code>在前、<code>x</code>在后，这样能更形象的表达“左折叠”的概念</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> loop_on_array = <span class="function"><span class="params">f</span> =&gt;</span> foldl(<span class="function"><span class="params">_</span> =&gt;</span> <span class="function"><span class="params">x</span> =&gt;</span> f(x)) (<span class="literal">undefined</span>)</span><br><span class="line"></span><br><span class="line">loop_on_array (<span class="function"><span class="params">x</span> =&gt;</span> <span class="built_in">console</span>.log(x)) ([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>])</span><br></pre></td></tr></table></figure>
+<p><img src="/uploads/public/perfect.jpg" alt></p>
+<h2 id="循环小结"><a href="#循环小结" class="headerlink" title="循环小结"></a>循环小结</h2><p>在第一个<code>for</code>循环的例子中，我们使用了命令式编程的思路，通过构造“顺序执行”组合函数来让“循环体”和“下一次迭代”这两个操作能够顺序执行。</p>
+<p>这个思路毫无疑问是行得通的，但是似乎又有点命令式编程思想根深蒂固的感觉，于是在后面的例子里面，通过<code>map</code>、<code>sum</code>抽象出<code>foldr</code>和<code>foldl</code>函数，实现了“有状态遍历”。</p>
+<p><code>foldr/foldl</code>是对数组（列表）操作的一个高度抽象，它非常非常强大。</p>
+<p>而在第一个例子实现<code>for</code>循环的过程中，我们费了老鼻子劲才构造出的“顺序执行”难道就这么被抛弃了？其实并没有，因为<code>foldr/foldl</code>抽象的是对列表的操作，而“顺序执行”则是更为普适的将两个操作的顺序进行安排的方式。至于它又有什么进一步的应用，看来只能下一篇文章才能继续写了。</p>
+<h1 id="下集预告"><a href="#下集预告" class="headerlink" title="下集预告"></a>下集预告</h1><p>不小心发现光是循环已经写了这么多……所以我觉得还是分开写吧，下一篇文章将会介绍如何实现“局部变量”和“状态”。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

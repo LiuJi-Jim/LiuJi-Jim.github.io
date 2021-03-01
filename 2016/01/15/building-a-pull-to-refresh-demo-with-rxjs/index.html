@@ -1,0 +1,324 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>使用RxJS做一个Pull-to-Refresh的例子 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="本文将用一个Pull-to-Refresh的例子来介绍如何使用RxJS进行高度抽象的复杂DOM事件处理。
+文中所开发的完整demo代码可以在github找到，在线demo在这里（需要使用手机或开启touch模拟，未作浏览器兼容）。
+这个程序将会用到的工具：
+
+RxJS
+VueJS（并非对其依赖，仅仅是为了方便开发一个UI）">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="使用RxJS做一个Pull-to-Refresh的例子">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2016-01-15T15:33:33.000Z"><a href="/2016/01/15/building-a-pull-to-refresh-demo-with-rxjs/">Jan 15 2016</a></time>
+      
+      
+  
+    <h1 class="title">使用RxJS做一个Pull-to-Refresh的例子</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>本文将用一个<em>Pull-to-Refresh</em>的例子来介绍如何使用RxJS进行高度抽象的复杂DOM事件处理。</p>
+<p>文中所开发的完整demo代码可以在<a href="https://github.com/LiuJi-Jim/rxjs-pull-to-refresh-demo" target="_blank" rel="noopener">github</a>找到，在线demo在<a href="http://liuji-jim.github.io/rxjs-pull-to-refresh-demo" target="_blank" rel="noopener">这里</a>（需要使用手机或开启touch模拟，未作浏览器兼容）。</p>
+<p>这个程序将会用到的工具：</p>
+<ul>
+<li><a href="https://github.com/Reactive-Extensions/RxJS" target="_blank" rel="noopener">RxJS</a></li>
+<li><a href="https://github.com/vuejs/vue" target="_blank" rel="noopener">VueJS</a>（并非对其依赖，仅仅是为了方便开发一个UI）</li>
+</ul>
+<a id="more"></a>
+<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>Pull to Refresh是一个流行到甚至让人开始觉得有些过时了的交互，也就是所谓的“下拉刷新”。</p>
+<p>这个交互简单描述就是：</p>
+<blockquote>
+<p>当一个元素的滚动位置处于其顶端时，做一个下拉手势，将会对元素进行刷新。</p>
+</blockquote>
+<p>由于Web中的限制，在具体实现上有一些妥协，我使用的策略是：</p>
+<blockquote>
+<p>在<code>touchstart</code>事件中，检测元素的滚动位置是否在其顶端，若是，则记录起始手指位置，并继续<br>在<code>touchmove</code>事件中，检测当前手指位置和起始位置的相对关系，若是下拉，则进入下拉状态<br>在下拉状态中，继续监听<code>touchmove</code>事件，并更新UI，通常会拉出一个隐藏的元素，通过其提示用户继续下拉可以刷新<br>下拉到一定程度，超过阈值，则可以进入<em>Release to Refresh</em>状态，通常也会在UI上做一些提示<br>在下拉手势结束时，检测下拉程度是否超过阈值，若是，则进行更新，否则恢复原貌</p>
+</blockquote>
+<p>接下来的内容中将会实现一个名为<code>pull-to-refresh</code>的<code>directive</code>，在Vue中将其应用在指定的元素上，并指定相关参数，响应对应的回调函数和事件，则可以复用“下拉刷新”的功能。</p>
+<p>使用Vue并非是Pull-to-Refresh本身、或者是RxJS依赖Vue，这只是做Demo的一个选择。同样，实现为<code>directive</code>也只是一个选择，将其实现为<code>component</code>或者<code>mixin</code>都是完全可行的。</p>
+<h1 id="页面"><a href="#页面" class="headerlink" title="页面"></a>页面</h1><p>首先构建一个如图所示的页面框架</p>
+<p><img src="/uploads/2016/pull-to-refresh.jpg" style="border:1px solid #ccc;"></p>
+<p>其结构为</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#app</span></span><br><span class="line">  <span class="string">.body</span></span><br><span class="line">    <span class="string">.staff</span></span><br><span class="line">      <span class="string">.person</span></span><br><span class="line">      <span class="string">.person</span></span><br><span class="line">      <span class="string">...</span></span><br><span class="line">      <span class="string">.person</span></span><br><span class="line">  <span class="string">.bottom-bar</span></span><br></pre></td></tr></table></figure>
+<p>其中<code>.body</code>是一个局部滚动元素，我们将会在<code>.staff</code>元素上应用<code>pull-to-refresh</code>，让其相对于body滚动时能够具有下拉刷新功能。</p>
+<p>而其他元素不是本文的重点，不在文中赘述了。</p>
+<h1 id="pull-to-refresh-事件流"><a href="#pull-to-refresh-事件流" class="headerlink" title="pull-to-refresh 事件流"></a>pull-to-refresh 事件流</h1><h2 id="Rx-中的事件流"><a href="#Rx-中的事件流" class="headerlink" title="Rx 中的事件流"></a>Rx 中的事件流</h2><p>Rx中的<code>Rx.Observable</code>可以使用“事件流”的概念来理解，它将一系列类似的、未来发生的事件整合成一条“流”，我们既可以像遍历一个序列一样去“遍历”它，也可以像对序列那样对它进行<code>map/filter/reduce/flatMap</code>等等操作，Rx还提供了诸如<code>skip/take/groupBy</code>等非常实用的操作，甚至是对两条事件流进行“交织”的操作。</p>
+<p>RxJS的API，可以在<a href="http://xgrommx.github.io/rx-book" target="_blank" rel="noopener">rx-book</a>找到，对于很多流操作它还有图形解释，非常棒。<a href="http://rxmarbles.com/" target="_blank" rel="noopener">RxMarbles</a>是一个对Rx中各种流操作的图形化学习工具，也是非常直观。</p>
+<h2 id="drag-事件流"><a href="#drag-事件流" class="headerlink" title="drag 事件流"></a>drag 事件流</h2><h3 id="传统方式"><a href="#传统方式" class="headerlink" title="传统方式"></a>传统方式</h3><p>在使用手工处理<code>drag</code>的时候，我们通常的思路是这样：</p>
+<ul>
+<li>在<code>touchstart</code>中记录起始位置，并开始监听<code>touchmove</code>和<code>touchend</code></li>
+<li>在<code>touchmove</code>中计算当前位置和起始位置之间的<code>offset</code>，并进行拖拽操作</li>
+<li>在<code>touchend</code>中取消监听<code>touchmove</code>和<code>touchstart</code>，并进行释放操作</li>
+</ul>
+<p>上面的描述起始是一个“状态机”，而接下来我们要用Rx的风格来处理<code>drag</code>。</p>
+<h3 id="Rx-的风格"><a href="#Rx-的风格" class="headerlink" title="Rx 的风格"></a>Rx 的风格</h3><p>首先我们拥有3条事件流，他们看起来分别是这样：</p>
+<figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">touchstart ---------@-----------------@-------------------</span><br><span class="line">touchmove  -----------#-#-#-#-#-#--------#-#-#-#-#-#------</span><br><span class="line">touchend   -----------------------$--------------------$--</span><br></pre></td></tr></table></figure>
+<p>对于<code>touchstart</code>流中的每一个事件，将其<code>map</code>成一个<code>drag</code>流，其中每一个元素都由<code>current</code>和<code>start</code>两个对象组成，每一条<code>drag</code>都会在整个<code>touchmove</code>流中持续，并在<code>touchend</code>事件时结束。</p>
+<p>将上面“图”里的那组事件流进行这样的组合变换，我们可以得到下面这样一个<code>drag</code>流</p>
+<figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">touchstart ---------@-----------------@-------------------</span><br><span class="line">touchmove  -----------#-#-#-#-#-#--------#-#-#-#-#-#------</span><br><span class="line">touchend   -----------------------$--------------------$--</span><br><span class="line"></span><br><span class="line">drag       ---------@-----------------@-------------------</span><br><span class="line">                    |-#-#-#-#-#-#     |--#-#-#-#-#-#</span><br></pre></td></tr></table></figure>
+<p>于是就可以通过Rx的订阅函数来处理这条<code>drag</code>流：</p>
+<figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">drags.subscribe(drag =&gt; drag.subscribe(<span class="built_in">move</span> =&gt; &#123;</span><br><span class="line">  <span class="keyword">let</span> start = <span class="built_in">move</span>.start</span><br><span class="line">  <span class="keyword">let</span> current = <span class="built_in">move</span>.current</span><br><span class="line">  obj.translate(current.X - start.X, current.Y - start.Y)</span><br><span class="line">&#125;))</span><br></pre></td></tr></table></figure>
+<h2 id="pull-to-refresh-事件流-1"><a href="#pull-to-refresh-事件流-1" class="headerlink" title="pull-to-refresh 事件流"></a>pull-to-refresh 事件流</h2><p><code>pull-to-refresh</code>比<code>drag</code>要稍微复杂一点，不过也复杂不到哪去，下面对着重点代码来梳理一下逻辑，完整代码在<code>src/directives/pull-to-refresh.js</code>当中。</p>
+<figure class="highlight lasso"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> touchstart = <span class="literal">Rx</span>.Observable.fromEvent(el, <span class="string">'touchstart'</span>)</span><br><span class="line"><span class="keyword">let</span> touchmove = <span class="literal">Rx</span>.Observable.fromEvent(el, <span class="string">'touchmove'</span>)</span><br><span class="line"><span class="keyword">let</span> touchend = <span class="literal">Rx</span>.Observable.fromEvent(el, <span class="string">'touchend'</span>)</span><br></pre></td></tr></table></figure>
+<p>首先像<code>drag</code>那样，建立起<code>touchstart/touchmove/touchend</code>三个流。</p>
+<figure class="highlight lasso"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> touchcancel = <span class="literal">Rx</span>.Observable.fromEvent(document, <span class="string">'touchcancel'</span>)</span><br><span class="line"><span class="keyword">let</span> end = <span class="literal">Rx</span>.Observable.merge(touchend, touchcancel)</span><br></pre></td></tr></table></figure>
+<p>对<code>touchend</code>和<code>touchcancel</code>进行无差别处理，将它们<code>merge</code>成一条<code>end</code>流，形象描述就是：</p>
+<figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">touchend</span>    --<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">#</span>--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">#</span>--<span class="literal">-</span><span class="literal">-</span></span><br><span class="line"><span class="comment">touchcancel</span> --<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">*</span>--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">*</span>--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span></span><br><span class="line"><span class="comment">end</span>         --<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">#</span>--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">*</span>--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">*</span><span class="literal">-</span><span class="comment">#</span>--<span class="literal">-</span><span class="literal">-</span></span><br></pre></td></tr></table></figure>
+<p>对<code>touchstart</code>流进行过滤，只处理“元素处于其滚动状态顶端”的那些事件，得到一条叫做<code>dragAtTop</code>的流：</p>
+<figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="attr">dragAtTop</span> = touchstart.filter(<span class="attr">e</span> =&gt; wrapper.<span class="attr">scrollTop</span> === <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<p>响应<code>dragAtTop</code>流，将它<code>map</code>成与上面类似的<code>drag</code>流，不过这次我们只关心纵轴上的数据。</p>
+<figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> dragTopDown = dragAtTop.map(start =&gt; &#123;</span><br><span class="line">  <span class="keyword">let</span> startY = start.touches[<span class="number">0</span>].pageY</span><br><span class="line">  <span class="keyword">return</span> touchmove</span><br><span class="line">    .map(<span class="built_in">move</span> =&gt; &#123;</span><br><span class="line">      <span class="keyword">let</span> currentY = <span class="built_in">move</span>.touches[<span class="number">0</span>].pageY</span><br><span class="line">      <span class="keyword">return</span> &#123;</span><br><span class="line">        startEvent: start,</span><br><span class="line">        moveEvent: <span class="built_in">move</span>,</span><br><span class="line">        startY: startY,</span><br><span class="line">        currentY: currentY,</span><br><span class="line">        offset: currentY - startY</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">    .skipWhile(drag =&gt; drag.offset &lt; <span class="number">0</span>) // 先无视向上拖拽的那些动作，直到向下拖拽才开始算dragTopDown</span><br><span class="line">    .takeUntil(<span class="keyword">end</span>) // 同样，还是到`<span class="keyword">end</span>`流发生就结束</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>还是用上面那组事件来描述的话，<code>dragTopDown</code>看起来就是这个样子：</p>
+<figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">                <span class="comment">/这个不在顶端，于是被抛弃了</span></span><br><span class="line"><span class="comment">touchstart</span> --<span class="literal">-</span><span class="literal">-</span><span class="comment">@</span>--<span class="literal">-</span><span class="literal">-</span><span class="comment">@</span>--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">@</span>--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span></span><br><span class="line"><span class="comment">dragAtTop</span>  --<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">@</span>--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">@</span>--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span></span><br><span class="line"><span class="comment">touchmove</span>  --<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">^</span>--<span class="literal">-</span><span class="literal">-</span><span class="comment">v</span><span class="literal">-</span><span class="comment">v</span><span class="literal">-</span><span class="comment">^</span><span class="literal">-</span><span class="comment">^</span><span class="literal">-</span><span class="comment">^</span><span class="literal">-</span><span class="comment">v</span>--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">v</span><span class="literal">-</span><span class="comment">^</span><span class="literal">-</span><span class="comment">v</span><span class="literal">-</span><span class="comment">v</span><span class="literal">-</span><span class="comment">^</span><span class="literal">-</span><span class="comment">^</span>--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span></span><br><span class="line"><span class="comment">end</span>        --<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">$</span>--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">$</span>--</span><br><span class="line"></span><br><span class="line"><span class="comment">dragTopDown</span>--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">@</span>--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">@</span>--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span></span><br><span class="line">                    <span class="comment">|</span>--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">^</span><span class="literal">-</span><span class="comment">^</span><span class="literal">-</span><span class="comment">^</span><span class="literal">-</span><span class="comment">v</span>     <span class="comment">|</span>--<span class="literal">-</span><span class="literal">-</span><span class="comment">^</span><span class="literal">-</span><span class="comment">v</span><span class="literal">-</span><span class="comment">v</span><span class="literal">-</span><span class="comment">^</span><span class="literal">-</span><span class="comment">^</span></span><br></pre></td></tr></table></figure>
+<p>现在我们就有了“顶部下拉”的事件流<code>dragTopDown</code>，对其进行响应，处理交互逻辑：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">dragTopDown.forEach(<span class="function"><span class="params">drags</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 响应所有drag move</span></span><br><span class="line">  drags.forEach(<span class="function"><span class="params">drag</span> =&gt;</span> &#123;</span><br><span class="line">    drag.moveEvent.preventDefault() <span class="comment">// 触发下拉刷新时，屏蔽原生滚动</span></span><br><span class="line">    <span class="keyword">let</span> offset = drag.offset / <span class="number">2</span> <span class="comment">// 压缩滚动距离，实现拖拽“力度”</span></span><br><span class="line">    <span class="keyword">if</span> (offset &lt; <span class="number">0</span> || offset &gt; maxOffset) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="comment">// 超过范围，不处理</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">let</span> refresh = offset &gt;= releaseThreshold <span class="comment">// 计算阈值，决定是否应该刷新</span></span><br><span class="line">    <span class="keyword">this</span>.vm.$emit(<span class="string">'pull-to-refresh-drag-move'</span>, offset, refresh) <span class="comment">// 触发事件</span></span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 对于最后一个drag move，有其单独逻辑</span></span><br><span class="line">  drags.last().subscribe(<span class="function"><span class="params">drag</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> offset = drag.offset / <span class="number">2</span></span><br><span class="line">    <span class="keyword">let</span> refresh = offset &gt;= releaseThreshold</span><br><span class="line">    <span class="keyword">if</span> (refresh) &#123;</span><br><span class="line">      <span class="comment">// 释放刷新时，先主动回弹到正确高度</span></span><br><span class="line">      <span class="keyword">this</span>.vm.$emit(<span class="string">'pull-to-refresh-drag-move'</span>, releaseThreshold, refresh)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 不刷新时，直接释放</span></span><br><span class="line">    <span class="comment">// 需要刷新时，调用onRefresh回调函数，完成刷新后再释放</span></span><br><span class="line">    <span class="keyword">let</span> promise = <span class="built_in">Promise</span>.resolve(refresh ? onRefresh() : <span class="literal">undefined</span>)</span><br><span class="line">    promise.then(<span class="function"><span class="params">ret</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">this</span>.vm.$emit(<span class="string">'pull-to-refresh-drag-release'</span>, refresh)</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>现在我们的<code>pull-to-refresh</code>这个<code>directive</code>就已经封装了：</p>
+<ul>
+<li><code>pull-to-refresh-drag-move</code>事件，可以获知下拉距离<code>offset</code>和是否超过刷新阈值<code>refresh</code></li>
+<li><code>pull-to-refresh-drag-release</code>事件，可以获知本次释放是否超过刷新阈值<code>refresh</code></li>
+</ul>
+<p>它依赖:</p>
+<ul>
+<li>监听<code>touch</code>事件族的元素<code>el</code>——通过Vue的<code>directive</code>机制即可自己获取</li>
+<li><code>el</code>所相对其滚动的容器<code>wrapper</code>——通过<code>directive</code>的<code>params</code>获取</li>
+<li>释放刷新时的<code>on-refresh</code>回调，返回一个<code>Promise</code>，在刷新操作完成时<code>resolve</code>，进行恢复</li>
+</ul>
+<h2 id="使用directive"><a href="#使用directive" class="headerlink" title="使用directive"></a>使用<code>directive</code></h2><p>接下来对<code>.staff</code>元素应用<code>v-pull-to-refresh-</code>，并且设定其各种参数，响应事件等，只摘主要的代码了</p>
+<h3 id="模板"><a href="#模板" class="headerlink" title="模板"></a>模板</h3><figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;<span class="keyword">div</span> <span class="built_in">class</span>=<span class="string">"body"</span> v-el:body&gt;</span><br><span class="line">  &lt;<span class="built_in">list</span>-view <span class="built_in">class</span>=<span class="string">"staff"</span> v-el:staff v-pull-<span class="keyword">to</span>-refresh :<span class="keyword">on</span>-refresh=<span class="string">"refresh"</span> :wrapper=<span class="string">"$els.body"</span>&gt;</span><br><span class="line">    &lt;<span class="keyword">div</span> <span class="built_in">class</span>=<span class="string">"p2r-hidden"</span>&gt;</span><br><span class="line">      ... 用于显示下拉刷新状态的隐藏层，通过对.staff使用负值margin来将其隐藏起来，下拉的时候则露出来</span><br><span class="line">    &lt;/<span class="keyword">div</span>&gt;</span><br><span class="line">    &lt;<span class="keyword">div</span> <span class="built_in">class</span>=<span class="string">"person"</span> v-<span class="keyword">for</span>=<span class="string">"person in staff"</span>&gt;</span><br><span class="line">      ... 列表本身</span><br><span class="line">    &lt;/<span class="keyword">div</span>&gt;</span><br><span class="line">  &lt;/<span class="built_in">list</span>-view&gt;</span><br></pre></td></tr></table></figure>
+<p>上面的代码中对<code>.staff</code>应用了<code>v-pull-to-refresh</code>，并且对它绑定<code>on-refresh</code>回调函数，<code>wrapper</code>设置为了<code>.body</code>，留下了<code>v-el:staff</code>引用，这样我们可以在<code>pull-to-refresh-drag-move</code>等事件中修改它的UI样式（当然，通过数据绑定来实现也OK）。</p>
+<h3 id="JS"><a href="#JS" class="headerlink" title="JS"></a>JS</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  methods: &#123;</span><br><span class="line">    pull (offset) &#123;</span><br><span class="line">      <span class="keyword">this</span>.$els.staff.style.transform = <span class="string">`translate3d(0, <span class="subst">$&#123;offset&#125;</span>px, 0)`</span></span><br><span class="line">    &#125;,</span><br><span class="line">    refresh () &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="params">resolve</span> =&gt;</span> setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">this</span>.shuffle() <span class="comment">// 将原来的数据打乱，假装成刷新了</span></span><br><span class="line">        resolve()</span><br><span class="line">      &#125;, <span class="number">2000</span>)) <span class="comment">// 延迟2秒，假装成正在加载的样子</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  events: &#123;</span><br><span class="line">    <span class="string">'pull-to-refresh-drag-move'</span>: <span class="function"><span class="keyword">function</span> (<span class="params">offset, result</span>) </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>.pull(offset) <span class="comment">// 更新下拉距离</span></span><br><span class="line">      <span class="comment">// 还原其他样式</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">'pull-to-refresh-drag-release'</span>: <span class="function"><span class="keyword">function</span> (<span class="params">result</span>) </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>.pull(<span class="number">0</span>) <span class="comment">// 还原下拉距离</span></span><br><span class="line">      <span class="comment">// 还原其他样式</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><p>使用Rx可以将离散的事件转换成<code>Rx.Observable</code>，我们理解成“流”的概念，“流”虽然是“无定型”的，但我们还是可以把它们当做“序列”来处理。一些原本需要用“状态”来实现的东西现在可以通过对流进行变化和组合来实现了，事件的脉络变得更加清晰。</p>
+<ul>
+<li><strong>事件监听</strong>可以看做一个永远不会结束的<code>Observable</code></li>
+<li><strong>异步调用</strong>可以看做一个只会发生一次，就立即结束的<code>Observable</code></li>
+<li>一个会结束的<code>Observable</code>可以通过<code>toPromise</code>来转换成<code>Promise</code></li>
+<li>一个会结束的<code>Observable</code>可以通过<code>toArray</code>，在其结束时，将它所有的元素转换成数组</li>
+<li>Rx也提供了很多辅助函数，帮助你把DOM事件、callback、Promise等多种异步风格的API转换成<code>Observable</code></li>
+</ul>
+<p>over了</p>
+<h1 id="References"><a href="#References" class="headerlink" title="References"></a>References</h1><ul>
+<li><a href="https://github.com/Reactive-Extensions/RxJS" target="_blank" rel="noopener">RxJS</a></li>
+<li><a href="https://github.com/vuejs/vue" target="_blank" rel="noopener">VueJS</a></li>
+<li><a href="http://www.zhangxinxu.com/study/201507/svg-circle-loading.html" target="_blank" rel="noopener">SVG实现圆环loading进度效果实例页面</a></li>
+<li><a href="http://beta.json-generator.com/" target="_blank" rel="noopener">JSON Generator</a>（生成测试数据的小帮手）</li>
+<li><a href="http://xgrommx.github.io/rx-book" target="_blank" rel="noopener">rx-book</a></li>
+<li><a href="http://rxmarbles.com/" target="_blank" rel="noopener">RxMarbles</a></li>
+</ul>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

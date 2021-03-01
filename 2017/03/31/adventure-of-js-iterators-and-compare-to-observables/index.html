@@ -1,0 +1,282 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>继续探索JS中的Iterator，兼谈与Observable的对比 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="前言JavaScript 2015中引入了Generator Function（相关内容可以参考前作ES6 generator函数与co一瞥与ES6 generator函数与co再一瞥），并且在加入了Symbol.iterator之后，使得构造拥有自定义迭代器的集合变得相当容易（可以参考前作在JavaScript中实现LINQ——一次“失败”的尝试）。
+前几天在群里@徐叔提出了这样一个问题：
+12345function* listen(element) &amp;#123;  element.addEventListener(&#39;click&#39;, function(e) &amp;#123;    // 这里怎么把e通过外面的listen给yield出去？  &amp;#125;)&amp;#125;
+音锤思婷……
+我理解，叔叔写listen的目的是为了把事件源抽象成一个“可以被遍历的集合”。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="继续探索JS中的Iterator，兼谈与Observable的对比">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2017-03-31T07:55:55.000Z"><a href="/2017/03/31/adventure-of-js-iterators-and-compare-to-observables/">Mar 31 2017</a></time>
+      
+      
+  
+    <h1 class="title">继续探索JS中的Iterator，兼谈与Observable的对比</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>JavaScript 2015中引入了Generator Function（相关内容可以参考前作<a href="/2014/11/28/a-brief-look-at-es6-generator-function/">ES6 generator函数与co一瞥</a>与<a href="/2015/01/18/more-about-es6-generator-function/">ES6 generator函数与co再一瞥</a>），并且在加入了<code>Symbol.iterator</code>之后，使得构造拥有自定义迭代器的集合变得相当容易（可以参考前作<a href="/2017/02/04/a-failed-attemption-to-js-linq/">在JavaScript中实现LINQ——一次“失败”的尝试</a>）。</p>
+<p>前几天在群里<a href="http://weibo.com/sharpmaster" target="_blank" rel="noopener">@徐叔</a>提出了这样一个问题：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span>* <span class="title">listen</span>(<span class="params">element</span>) </span>&#123;</span><br><span class="line">  element.addEventListener(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">e</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 这里怎么把e通过外面的listen给yield出去？</span></span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>音锤思婷……</p>
+<p>我理解，叔叔写<code>listen</code>的目的是为了把事件源抽象成一个“可以被遍历的集合”。</p>
+<a id="more"></a>
+<h1 id="JavaScript里的迭代器模式"><a href="#JavaScript里的迭代器模式" class="headerlink" title="JavaScript里的迭代器模式"></a>JavaScript里的迭代器模式</h1><p>要理解JS里的迭代器模式，首先必须从<code>GeneratorFunction</code>和<code>Symbol.iterator</code>说起。</p>
+<p>JS的迭代器模式和C#有些许不同（原谅我经常用C#力的接口来做例子，其实只是因为我觉得它这些接口设计得比较工整良好，而且强类型语言也挺适合做例子），C#中使用两个接口<code>IEnumerable&lt;T&gt;</code>和<code>IEnumerator&lt;T&gt;</code>来实现迭代器模式，分别定义为</p>
+<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IEnumerable</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">  IEnumerator&lt;T&gt; GetEnumerator()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IEnumerator</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">  T Current &#123; <span class="keyword">get</span>; &#125;</span><br><span class="line">  bool MoveNext()</span><br><span class="line">  <span class="comment">// 省略其他无关紧要的</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>实现了<code>IEnumerable&lt;T&gt;</code>的类型可以享受到<code>foreach</code>语法糖，<code>foreach</code>展开后就是通过对<code>IEnumerator&lt;T&gt;</code>不断地<code>MoveNext()</code>来完成迭代过程，这很好理解。</p>
+<p>JS的迭代器模式围绕<code>Symbol.iterator</code>，任何对象只要实现了<code>Symbol.iterator</code>就可以享受<code>for-of</code>语法糖。</p>
+<p>在迭代过程方面，C#只用<code>IEnumerator&lt;T&gt;</code>一个接口同时实现了迭代和取值两个操作，但JS里用了两个接口，这里举个例子</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">var array = [1, 2, 3, 4, 5]</span><br><span class="line">var iter = array[<span class="string">Symbol.iterator</span>](<span class="link"></span>)</span><br><span class="line">for (var it = iter.next(); !it.done; it = iter.next()) &#123;</span><br><span class="line">  console.log(it)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到调用<code>Symbol.iterator</code>所得到的<code>iter</code>对象只是负责<code>next()</code>工作，而其不断<code>next</code>所得到的<code>it</code>对象则负责<code>value</code>和<code>done</code>工作。</p>
+<p>也就是说，在不借助<code>yield</code>的情况下，要实现<code>Symbol.iterator</code>只需要构造一个满足上述接口的对象就OK了，举个例子</p>
+<figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> fakeArray = &#123;</span><br><span class="line">  _values: [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>],</span><br><span class="line">  [Symbol.iterator]() &#123;</span><br><span class="line">    <span class="keyword">var</span> _values = <span class="keyword">this</span>._values</span><br><span class="line">    <span class="keyword">var</span> _index = <span class="number">0</span></span><br><span class="line">    <span class="keyword">var</span> iter = &#123;</span><br><span class="line">      next() &#123;</span><br><span class="line">        <span class="keyword">var</span> <span class="literal">it</span> = &#123;</span><br><span class="line">          value: _values[_index],</span><br><span class="line">          done: _index &gt;= _values.length</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="literal">it</span>.done) &#123;</span><br><span class="line">          _index++</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">it</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> iter</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> n <span class="keyword">of</span> fakeArray) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(n)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后我们尝试一下，能不能用<code>yield *</code>语法来实现它和<code>Generator</code>的无缝衔接：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span>* <span class="title">gen</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">yield</span> <span class="string">'1-1'</span></span><br><span class="line">  <span class="keyword">yield</span> <span class="string">'1-2'</span></span><br><span class="line">  <span class="keyword">yield</span>* fakeArray</span><br><span class="line">  <span class="keyword">yield</span> <span class="string">'1-3'</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> t <span class="keyword">of</span> gen()) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(t)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>耶，成功了，解糖后手工遍历呢？</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">var</span> <span class="keyword">iter </span>= gen()</span><br><span class="line"><span class="symbol">for</span> (var <span class="keyword">it </span>= <span class="keyword">iter.next(); </span>!<span class="keyword">it.done; </span><span class="keyword">it </span>= <span class="keyword">iter.next()) </span>&#123;</span><br><span class="line">  console.log(<span class="keyword">it)</span></span><br><span class="line"><span class="keyword">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><img src="/uploads/public/perfect.jpg" alt></p>
+<h1 id="用迭代器模式实现事件源是否可行"><a href="#用迭代器模式实现事件源是否可行" class="headerlink" title="用迭代器模式实现事件源是否可行"></a>用迭代器模式实现事件源是否可行</h1><p>先说结论，我认为是：仅从上面所讨论的范围来看，<strong>不可行</strong>。</p>
+<p>使用迭代器模式，无外乎是为了能工用<code>for-of</code>语法（或者解糖以后自己不断<code>next()</code>）来遍历集合。我们知道迭代器模式是一种典型的“Pull”模型，迭代过程是不断从集合里把东西拉出来，直到什么都拉不出来了（怎么听起来这么膈应）。</p>
+<p>事件源是一个异步的东西，只有当事件发生的时候才会有货，但我们并不知道事件什么时候发生，因此当被“拉”的时候，不知道该把什么东西交给迭代器。</p>
+<p>这时候有同学要问了，之前我们不是用co通过<code>yield</code>来处理异步的东西吗，这不是证明<code>yield/generator</code>是可以处理异步问题的吗？</p>
+<p>其实只要看过我之前文章或者对co有了解的同学肯定就会知道，co是对<code>yield/generator</code>的“误用”，我之所以加引号是因为在Unity的C#里甚至官方就直接用<code>yield</code>和<code>IEnumerator&lt;T&gt;</code>来实现了官方的协程API（我就不吐槽了您赶紧把C#版本升级了用<code>async/await</code>吧），据我了解Python也有这么干的。这说明这个“误用”是一个有据可循的东西。</p>
+<p>在co这样的语境下，<code>yield/generator</code>已经完全不是为了构造自定义集合以及配合<code>for-of</code>语法糖实现迭代器模式而用的，所以我们费了老鼻子劲实现的<code>Symbol.iterator</code>到底还有没有卵用？</p>
+<p>我要说，如果跳出上面所讨论的范围来看呢，还是有点儿卵用的。</p>
+<h1 id="“黑化”之后的产物"><a href="#“黑化”之后的产物" class="headerlink" title="“黑化”之后的产物"></a>“黑化”之后的产物</h1><p>我们先设定一个“目标语法”</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span>* <span class="title">eventListeningByCoroutine</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> eventSource = someMagicFunction()</span><br><span class="line"></span><br><span class="line">  <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> e = <span class="keyword">yield</span> eventSource.take()</span><br><span class="line">    <span class="built_in">document</span>.querySelector(<span class="string">'#logger'</span>).innerHTML = e.pageX + <span class="string">', '</span> + e.pageY</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">startCoroutine(eventListeningByCoroutine)</span><br></pre></td></tr></table></figure>
+<p>看到没，用一个<code>while (true)</code>，死命地从<code>eventSource</code>里拉东西出来，由于这个拉的过程是不确定（异步）的，我们只好加了<code>yield</code>。</p>
+<p>所以现在模型建立了，我们剩下两个问题，一个是<code>someMagicFunction</code>如何实现，一个是<code>startCoroutine</code>如何实现。</p>
+<p>如果看过我之前写的<a href="/2015/01/18/more-about-es6-generator-function/">ES6 generator函数与co再一瞥</a>，嗯，也可以起一个新名字，叫做《手把手教你实现一个山寨的co），那么应该很快就能写出上面的<code>startCoroutine</code>函数。</p>
+<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">startCoroutine</span><span class="params">(generatorFunction)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> iter = generatorFunction()</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">step</span><span class="params">(data)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> it = iter.next(data)</span><br><span class="line">    <span class="keyword">if</span> (it.done) &#123;</span><br><span class="line">      <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> callback = it.value</span><br><span class="line">    callback(<span class="function"><span class="keyword">function</span><span class="params">(val)</span> </span>&#123;</span><br><span class="line">      step(val)</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  step()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>具体过程就不展开分析了，呃，我的意思是大概这样↓</p>
+<p><img src="/uploads/public/how-to-draw-a-horse.jpg" alt="怎样画马"></p>
+<p>然后更关键的是<code>someMagicFunction</code>怎么实现</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">someMagicFunction</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> taker</span><br><span class="line">  <span class="keyword">var</span> iter = &#123;</span><br><span class="line">    take: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="function"><span class="keyword">function</span>(<span class="params">callback</span>) </span>&#123;</span><br><span class="line">        taker = <span class="function"><span class="keyword">function</span>(<span class="params">e</span>) </span>&#123;</span><br><span class="line">          callback(e)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">put</span>(<span class="params">e</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!taker) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="comment">// dropped</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> _taker = taker</span><br><span class="line">    taker = <span class="literal">null</span> <span class="comment">// cleaning up</span></span><br><span class="line">    _taker(e)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">document</span>.querySelector(<span class="string">'#main'</span>).addEventListener(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">e</span>) </span>&#123;</span><br><span class="line">    put(e)</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> iter</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>完整演示在这里<a href="http://runjs.cn/code/yzbro1a1" target="_blank" rel="noopener">runjs/yzbro1a1</a>。</p>
+<p>嗯，其实我就是劣质地抄了一个<a href="https://github.com/ubolonton/js-csp" target="_blank" rel="noopener">js-csp</a>，它是一个<strong>CSP(Communicating sequential processes)</strong>的实现，相当于Clojure里的<code>core.async</code>和Go里的<code>chan</code>。这里的例子也基本就是<a href="https://github.com/ubolonton/js-csp/blob/master/examples/web/mouse-events.html" target="_blank" rel="noopener">js-csp的其中一个例子</a>的简化版而已。</p>
+<p>在CSP中，事件源被抽象为一个<code>channel</code>（或者像erlang里好像叫mailbox之类的，很形象），发生事件的时候往里面<code>put</code>，监听事件这个事情体现为源源不断地（while-true）从里面<code>take</code>——注意，这个<code>take</code>是一个“阻塞”操作，体现为它必须冠以<code>yield</code>。</p>
+<h1 id="与Observable（RxJS）对比"><a href="#与Observable（RxJS）对比" class="headerlink" title="与Observable（RxJS）对比"></a>与<code>Observable</code>（RxJS）对比</h1><p>从上面可以看到，只靠迭代器模式是不能用来抽象异步事件源的（至少吧，以我当前的理解能力，是不能的）。</p>
+<p>本质上是因为迭代器模式使用的是“Pull”模型，什么时候发生迭代完全是由迭代者本身什么时候去“拉”数据决定的；而观察者模式是“Push”模型，什么时候发生迭代是由数据源本身决定的，这也使得它非常适合“事件流”、“消息推送”这类的持续、异步数据的迭代，也就是所谓的“Reactive Programming”。</p>
+<p>那为什么最后的DEMO就用更类似“Pull”的方式实现了呢？因为<code>startCoroutine</code>和<code>someMagicFunction</code>这两者之间实现了消息传递，<code>startCoroutine</code>接管了<code>yield</code>和迭代中“什么时候该<code>next()</code>”的过程，<code>someMagicFunction</code>向反过来向它发送“你可以继续拉了”的消息（注意：上面的例子中实现为回调函数），这俩一推一拉，好不默契（？？？</p>
+<p>值得注意的一点是不论CSP还是Observable都会存在一个“什么时候push”的问题，在RxJS和js-csp中，体现为它们有一个Scheduler的存在，在RxJS中它决定<code>subscribe</code>什么时候被发射，在js-csp中它决定<code>taker</code>什么时候被满足。RxJS内置的Scheduler就有诸如<code>Rx.Scheduler.immediate</code>, <code>Rx.Scheduler.currentThread</code>, <code>Rx.Scheduler.default</code>等好几种，并且对于不同的Observable它根据策略会默认选择不同的Scheduler。</p>
+<p>当然最后实现了一个劣质的CSP的DEMO，也算填了一个我两年前学习Go以及第一次看到js-csp的时候就开的坑——是啊，在我脑海里开了坑，但没敢告诉你们，免得你们又吐槽我挖坑不填（逃</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

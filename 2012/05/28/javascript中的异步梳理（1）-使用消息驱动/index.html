@@ -1,0 +1,245 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>JavaScript中的异步梳理（1）——使用消息驱动 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="继续上一篇文章，这篇探讨使用消息驱动来优化异步编程体验。
+先举一个例子，如果希望ABCDE这5个函数依次执行，我们可以写出如下代码。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="JavaScript中的异步梳理（1）——使用消息驱动">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2012-05-28T03:09:07.000Z"><a href="/2012/05/28/javascript中的异步梳理（1）-使用消息驱动/">May 28 2012</a></time>
+      
+      
+  
+    <h1 class="title">JavaScript中的异步梳理（1）——使用消息驱动</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>继续<a href="/2012/04/23/javascript中的异步梳理（0）/" title="JavaScript中的异步梳理（0）">上一篇文章</a>，这篇探讨使用消息驱动来优化异步编程体验。</p>
+<p>先举一个例子，如果希望<code>ABCDE</code>这5个函数依次执行，我们可以写出如下代码。<br><a id="more"></a><br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">A();</span><br><span class="line">B();</span><br><span class="line">C();</span><br><span class="line">D();</span><br><span class="line">E();</span><br></pre></td></tr></table></figure></p>
+<p>在同步的情况下，这样的代码没有任何问题。但如果ABCDE都是异步的，还需要按次序执行，这样写就不行了。通常我们会为异步函数设置回调，当函数执行完的时候执行回调，例如<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">A(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    B(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        C(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">            D(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">                E();</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<p>毫无疑问这样的编程体验是很差的。当异步流复杂的时候回调嵌套层数会很多，完全就是一场噩梦。</p>
+<p>这还不是最重要的，如果想表达“当AB都完成的时候执行C”这样的流程，并且希望A/B可以并行，就不能简单的用这样的回调了。<br>虽然说“当AB都完成的时候执行C”可以通过设置一个布尔量来解决，但是“当ABCD都完成的时候执行E”这样的逻辑就需要在每个函数执行完的时候去判断其他函数是否执行完，虽然的确是可行的，但是编程体现是比较差的。</p>
+<p>身为一名懒惰的程序员，这样显然满足不了我们的胃口。</p>
+<p><a href="http://weibo.com/shyvo" target="_blank" rel="noopener">@朴灵</a> 写了一个<a href="https://github.com/JacksonTian" target="_blank" rel="noopener">EventProxy</a>，提供了事件驱动的异步编程体验<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> proxy = <span class="keyword">new</span> EventProxy();</span><br><span class="line">proxy.assign(<span class="string">'A'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    B(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        proxy.trigger(<span class="string">'B'</span>);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;);</span><br><span class="line">proxy.assign(<span class="string">'B'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    C(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        proxy.trigger(<span class="string">'C'</span>);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;);</span><br><span class="line">proxy.assign(<span class="string">'C'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    D(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        proxy.trigger(<span class="string">'D'</span>);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;);</span><br><span class="line">proxy.assign(<span class="string">'D'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    E();</span><br><span class="line">&#125;);</span><br><span class="line">A(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    proxy.trigger(<span class="string">'A'</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<p>可以看出通过消息来驱动代码可以让异步嵌套被“拉平”了，而如果要描述“当ABCD都完成的时候执行E”这样的流程也很容易了<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> proxy = <span class="keyword">new</span> EventProxy();</span><br><span class="line">proxy.assign(<span class="string">'A'</span>, <span class="string">'B'</span>, <span class="string">'C'</span>, <span class="string">'D'</span>, E);</span><br><span class="line">A(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    proxy.trigger(<span class="string">'A'</span>);</span><br><span class="line">&#125;);</span><br><span class="line">B(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    proxy.trigger(<span class="string">'B'</span>);</span><br><span class="line">&#125;);</span><br><span class="line">C(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    proxy.trigger(<span class="string">'C'</span>);</span><br><span class="line">&#125;);</span><br><span class="line">D(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    proxy.trigger(<span class="string">'D'</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<p>除了改善异步编程体验以外，EventProxy也可以提供一个自定义的事件系统。</p>
+<p>EventProxy很简单，源代码只有300多行，但是对于我这样的移动开发者来说任何用不上的代码都是负担。<br>由于我自己将Event系统拆成了单独的一个模块，而我（目前为止）也不需要EventProxy在<code>trigger</code>一个消息的时候的参数传递的功能，对于<code>some</code>, <code>any</code>, <code>not</code>这些限定词我也不需要，因此我自己实现了一个简单版的异步流控制工具。<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line">(<span class="function"><span class="keyword">function</span>(<span class="params">export</span>)</span>&#123;</span><br><span class="line"><span class="keyword">var</span> uid = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">var</span> Jas = <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.map = &#123;&#125;;</span><br><span class="line">    <span class="keyword">this</span>.rmap = &#123;&#125;;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">var</span> indexOf = <span class="built_in">Array</span>.prototype.indexOf || <span class="function"><span class="keyword">function</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">var</span> i=<span class="number">0</span>, len=<span class="keyword">this</span>.length; i&lt;len; ++i)&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>[i] === obj) <span class="keyword">return</span> i;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">var</span> fire = <span class="function"><span class="keyword">function</span>(<span class="params">callback, thisObj</span>)</span>&#123;</span><br><span class="line">    setTimeout(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        callback.call(thisObj);</span><br><span class="line">    &#125;, <span class="number">0</span>);</span><br><span class="line">&#125;;</span><br><span class="line">Jas.prototype = &#123;</span><br><span class="line">    waitFor: <span class="function"><span class="keyword">function</span>(<span class="params">resources, callback, thisObj</span>)</span>&#123;</span><br><span class="line">        <span class="keyword">var</span> map = <span class="keyword">this</span>.map, rmap = <span class="keyword">this</span>.rmap;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">typeof</span> resources === <span class="string">'string'</span>) resources = [resources];</span><br><span class="line">        <span class="keyword">var</span> id = (uid++).toString(<span class="number">16</span>); <span class="comment">// using hex</span></span><br><span class="line">        map[id] = &#123;</span><br><span class="line">            waiting: resources.slice(<span class="number">0</span>), <span class="comment">// clone Array</span></span><br><span class="line">            callback: callback,</span><br><span class="line">            thisObj: thisObj</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">var</span> i=<span class="number">0</span>, len=resources.length; i&lt;len; ++i)&#123;</span><br><span class="line">            <span class="keyword">var</span> res = resources[i],</span><br><span class="line">                list = rmap[res] || (rmap[res] = []);</span><br><span class="line">            list.push(id);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">    &#125;,</span><br><span class="line">    trigger: <span class="function"><span class="keyword">function</span>(<span class="params">resources</span>)</span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (!resources) <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">        <span class="keyword">var</span> map = <span class="keyword">this</span>.map, rmap = <span class="keyword">this</span>.rmap;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">typeof</span> resources === <span class="string">'string'</span>) resources = [resources];</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">var</span> i=<span class="number">0</span>, len=resources.length; i&lt;len; ++i)&#123;</span><br><span class="line">            <span class="keyword">var</span> res = resources[i];</span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">typeof</span> rmap[res] === <span class="string">'undefined'</span>) <span class="keyword">continue</span>;</span><br><span class="line">            <span class="keyword">this</span>._release(res, rmap[res]); <span class="comment">// notify each callback waiting for this resource</span></span><br><span class="line">            <span class="keyword">delete</span> rmap[res]; <span class="comment">// release this resource</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">    &#125;,</span><br><span class="line">    _release: <span class="function"><span class="keyword">function</span>(<span class="params">res, list</span>)</span>&#123;</span><br><span class="line">        <span class="keyword">var</span> map = <span class="keyword">this</span>.map, rmap = <span class="keyword">this</span>.rmap;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">var</span> i=<span class="number">0</span>, len=list.length; i&lt;len; ++i)&#123;</span><br><span class="line">            <span class="keyword">var</span> uid = list[i], mapItem = map[uid], waiting = mapItem.waiting,</span><br><span class="line">                pos = indexOf.call(waiting, res);</span><br><span class="line">            waiting.splice(pos, <span class="number">1</span>); <span class="comment">// remove</span></span><br><span class="line">            <span class="keyword">if</span> (waiting.length === <span class="number">0</span>)&#123; <span class="comment">// no more depends</span></span><br><span class="line">                fire(mapItem.callback, mapItem.thisObj); <span class="comment">// fire the callback asynchronously</span></span><br><span class="line">                <span class="keyword">delete</span> map[uid];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">export</span>.Jas = Jas; <span class="comment">// Jas is JavaScript Asynchronous (callings) Synchronizer</span></span><br><span class="line">&#125;)(<span class="built_in">window</span>);</span><br></pre></td></tr></table></figure></p>
+<p>使用起来也挺简单<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> flow = <span class="keyword">new</span> Jas();</span><br><span class="line">flow.waitFor([<span class="string">'A'</span>, <span class="string">'B'</span>], <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="comment">// both A and B are done!!</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">$.getJSON(url1, <span class="function"><span class="keyword">function</span>(<span class="params">data</span>)</span>&#123;</span><br><span class="line">    <span class="comment">// An ajax request</span></span><br><span class="line">    flow.trigger(<span class="string">'A'</span>);</span><br><span class="line">&#125;);</span><br><span class="line">$.getJSON(url2<span class="string">', function(data)&#123;</span></span><br><span class="line"><span class="string">    // Another ajax request</span></span><br><span class="line"><span class="string">    flow.trigger('</span>B<span class="string">');</span></span><br><span class="line"><span class="string">&#125;);</span></span><br></pre></td></tr></table></figure></p>
+<p><strong><del>小姐</del>小结一下：</strong><br>使用消息驱动的方式可以让我们在异步编程中避免一些回调嵌套的噩梦，优化编程体验，在流程有修改的时候也更加灵活，可以用一种接近“声明”式的方式去描述异步函数流。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

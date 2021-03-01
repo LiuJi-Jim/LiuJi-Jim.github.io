@@ -1,0 +1,287 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>JS中的二进制操作简介 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="写这篇博客的起源是在div.io上的一篇文章《你所不知道的JavaScript数组》by 小胡子哥下的评论中的讨论。
+因为随着XHR2和现代浏览器的普及，在浏览器当中处理二进制不再向过去那样无所适从，随着Canvas/WebGL等新技术逐渐开始进入大众视野，也会用到一些字节数组或者16位、8位整数等东西。在node.js刚刚发布的4.0版本中，Buffer的底层使用了更符合JS标准的Uint8Array来实现，浏览器和node.js再次向相同的目标靠近了一点点，所以对于JS中处理二进制，我就打算写这篇文章作一个入门性质的流水账，方便一些对二进制处理不了解的同学快速入门，虽然在前端领域用到的不多，不过也可以作为茶余饭后的休闲谈资。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="JS中的二进制操作简介">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-09-26T04:31:35.000Z"><a href="/2015/09/26/a-brief-look-at-binary-ops-in-js/">Sep 26 2015</a></time>
+      
+      
+  
+    <h1 class="title">JS中的二进制操作简介</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>写这篇博客的起源是在<a href="http://div.io" target="_blank" rel="noopener">div.io</a>上的一篇<a href="http://div.io/topic/766" target="_blank" rel="noopener">文章《你所不知道的JavaScript数组》by 小胡子哥</a>下的评论中的讨论。</p>
+<p>因为随着XHR2和现代浏览器的普及，在浏览器当中处理二进制不再向过去那样无所适从，随着Canvas/WebGL等新技术逐渐开始进入大众视野，也会用到一些字节数组或者16位、8位整数等东西。在node.js刚刚发布的4.0版本中，Buffer的底层使用了更符合JS标准的<code>Uint8Array</code>来实现，浏览器和node.js再次向相同的目标靠近了一点点，所以对于JS中处理二进制，我就打算写这篇文章作一个入门性质的流水账，方便一些对二进制处理不了解的同学快速入门，虽然在前端领域用到的不多，不过也可以作为茶余饭后的休闲谈资。</p>
+<a id="more"></a>
+<h2 id="二进制数据在JS程序里的表达"><a href="#二进制数据在JS程序里的表达" class="headerlink" title="二进制数据在JS程序里的表达"></a>二进制数据在JS程序里的表达</h2><p>现今世界上几乎所有的计算机体系结构都是以字节（byte）为二进制数据的基本单位（注：不是说最小单位），所以二进制常常以字节数组的形式存在于程序当中。例如在C#里面，就用<code>byte[]</code>，标准C里面没有<code>byte</code>类型，但可以通过<code>typedef</code>把<code>byte</code>定义为<code>unsigned char</code>的别名，效果是一样的。</p>
+<p>JS设计之初似乎根本没想过要处理二进制的东西，加上对类型的极度弱化，对于字节的概念可以说是非常非常的模糊。如果要表达字节数组，那么似乎只能用一个普通数组来表示。</p>
+<p>HTML5体系引入了一大堆新的东西，比如XHR2，是可以上传或下载二进制内容的，与之配套的东西就是JS里的<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" target="_blank" rel="noopener">ArrayBuffer</a>和<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" target="_blank" rel="noopener">Typed Array</a>了。</p>
+<p><code>ArrayBuffer</code>是一个固定长度的字节序列，你可以通过<code>new ArrayBuffer(length)</code>来得到一片空间，或者用下文将会介绍的方法从XHR2等途径获取。由于内部实现与数组不一样，<code>ArrayBuffer</code>通常都是连续内存（注意，这只是经验之谈，并不是规范也不是文档所明确的），因此对于高密度的访问操作而言它比JS中的Array速度会快很多（但并不要用它来简单地代替Array）。如果用Chrome的Profile工具查看Heap Snapshot，会发现ArrayBuffer会被单独列为一类，也许它的内存分配和布局与Array以及其他JS对象有一些差别吧。</p>
+<p><code>ArrayBuffer</code>是不能直接被访问的，因此需要借助Typed Array。Typed Array是一组具体数据类型的Array-Like类型的统称，包括</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Int8Array</span>             <span class="number">8</span>位有符号整数，类似于C里面的char</span><br><span class="line"><span class="built_in">Uint8Array</span>            <span class="number">8</span>位无符号整数，类似于C里面的unsigned char</span><br><span class="line"><span class="built_in">Uint8ClampedArray</span>     <span class="number">8</span>位无符号整数，跟Uint8类似，但在溢出处理上不大一样</span><br><span class="line"><span class="built_in">Int16Array</span>            后面这些类型就不罗嗦了</span><br><span class="line"><span class="built_in">Uint16Array</span></span><br><span class="line"><span class="built_in">Int32Array</span></span><br><span class="line"><span class="built_in">Uint32Array</span></span><br><span class="line"><span class="built_in">Float32Array</span></span><br><span class="line"><span class="built_in">Float64Array</span></span><br></pre></td></tr></table></figure>
+<p>Typed Array的背后是一个<code>ArrayBuffer</code>，也就是说，<strong>事实上的数据是存在<code>ArrayBuffer</code>里面的，而Typed Array只是给你提供了一个某种类型的读写接口</strong>，用<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays" target="_blank" rel="noopener">MDN的话</a>说，叫做</p>
+<blockquote>
+<p>Multiple views on the same data</p>
+</blockquote>
+<p>举个栗子，如果我们有一个<code>ArrayBuffer</code>名为buffer（先不考虑怎么构造这个测试数据），内容如下：</p>
+<figure class="highlight basic"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">01 </span><span class="number">02</span> <span class="number">03</span> <span class="number">04</span> <span class="number">05</span> <span class="number">06</span> <span class="number">07</span> <span class="number">08</span></span><br></pre></td></tr></table></figure>
+<p>也就是说它有8个字节，我们分别用它来构造<code>Uint8Array</code>, <code>Uint16Array</code>, <code>Uint32Array</code>，则可以得到</p>
+<figure class="highlight haxe"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span>  u8 = <span class="keyword">new</span>  <span class="type">Uint8Array</span>(buffer); <span class="comment">// length为8</span></span><br><span class="line"><span class="keyword">var</span> u16 = <span class="keyword">new</span> <span class="type">Uint16Array</span>(buffer); <span class="comment">// length为4</span></span><br><span class="line"><span class="keyword">var</span> u32 = <span class="keyword">new</span> <span class="type">Uint32Array</span>(buffer); <span class="comment">// length为2</span></span><br></pre></td></tr></table></figure>
+<p>它们的内容分别为</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>]</span><br><span class="line">[<span class="number">513</span>, <span class="number">1027</span>, <span class="number">1541</span>, <span class="number">2055</span>]</span><br><span class="line">[<span class="number">67305985</span>, <span class="number">134678021</span>]</span><br></pre></td></tr></table></figure>
+<p>这不难理解。</p>
+<p>可以看出，如果要手工构造上面的测试数据<code>ArrayBuffer</code>，用<code>Uint8Array</code>就会很方便（呃事实上这是我个人最常用的一种Typed Array）。</p>
+<p>而如果用同样的<code>ArrayBuffer</code>构建带符号整数类型，则可能因为整数溢出而得到不同的结果，上面的例子并没有碰到，有兴趣的话可以自己试试。因此使用Typed Array也可以用来做有符号数和无符号数的转换。</p>
+<p>如果你用过canvas的<code>getImageData/putImageData</code>的话，会发现它给你的就是一个<code>Uint8ClampedArray</code>，这东西访问起来速度比JS的原生Array快很多，使得对canvas进行高速的像素操作成为可能。</p>
+<p>然而最最重要的一个概念还是：<strong>Typed Array不直接存放任何数据，所有对Typed Array进行读写的操作，最终都会落实到它背后所持有的<code>ArrayBuffer</code>的身上。</strong><code>ArrayBuffer</code>才是真正的<strong>raw bytes，而Typed Array只是一个操作窗口/操作视图（View）。</strong></p>
+<h2 id="获取二进制数据"><a href="#获取二进制数据" class="headerlink" title="获取二进制数据"></a>获取二进制数据</h2><p>nodejs那边先按住不表，这里谈谈在网页里如何获取二进制数据？常见的办法有3种，1是通过<code>XMLHttpRequest 2</code>，2是通过<code>File</code>和<code>Blob</code>一套相关接口。</p>
+<h3 id="通过XMLHttpRequest-2"><a href="#通过XMLHttpRequest-2" class="headerlink" title="通过XMLHttpRequest 2"></a>通过XMLHttpRequest 2</h3><p>XHR2的接口跟XHR几乎是一样的，当制定<code>xhr.responseType = &#39;arraybuffer&#39;</code>以后，在成功获取数据的回调里就可以通过<code>xhr.response</code>来得到请求结果的<code>ArrayBuffer</code>了，然后就可以按照你的意愿来构造各种Typed Array进行访问。</p>
+<p><code>responseType</code>还可以有<code>blob</code>取值，可以用<code>xhr.response</code>获得<a href="https://developer.mozilla.org/en-US/docs/Web/API/Blob" target="_blank" rel="noopener">Blob</a>对象。</p>
+<h3 id="通过File和Blob"><a href="#通过File和Blob" class="headerlink" title="通过File和Blob"></a>通过File和Blob</h3><p>在HTML5中提供了对表单的文件控件<code>&lt;input type=&quot;file&quot; /&gt;</code>更丰富的操作，可以通过<code>input</code>DOM对象的<code>.files</code>来获取一个<code>FileList</code>，当然通常浏览器都只提供了单选的文件控件，于是这里都只会有一个<a href="https://developer.mozilla.org/en-US/docs/Web/API/File" target="_blank" rel="noopener">File</a>对象。另外，通过拖拽、剪贴板等方式也能获取到<code>File</code>或者<code>Blob</code>。</p>
+<p><code>File</code>继承了<code>Blob</code>，并提供了<code>name</code>, <code>lastModifiedDate</code>等基础元数据，但是依然是一个深度封装，不能直接获取到它的二进制。</p>
+<p><code>Blob</code>是<code>Binary large object</code>的缩写，它与<code>ArrayBuffer</code>的区别是除了raw bytes以外它还提供了mime type作为元数据。但它依然是无法直接被读写的。</p>
+<p>这时候需要借助<a href="https://developer.mozilla.org/en-US/docs/Web/API/FileReader" target="_blank" rel="noopener">FileReader</a>的帮忙。<code>FileReader</code>提供了一组用来将<code>Blob</code>读取为更为实用的类型的方法</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">readAsArrayBuffer</span><span class="params">()</span></span></span><br><span class="line"><span class="function"><span class="title">readAsBinaryString</span><span class="params">()</span></span></span><br><span class="line"><span class="function"><span class="title">readAsDataURL</span><span class="params">()</span></span></span><br><span class="line"><span class="function"><span class="title">readAsText</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure>
+<p>例如<br><figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> file = get_file_some_how();</span><br><span class="line"><span class="keyword">var</span> fr = <span class="keyword">new</span> FileReader();</span><br><span class="line">fr.onload = <span class="function"><span class="keyword">function</span><span class="params">(e)</span> </span>&#123;</span><br><span class="line">    e.target.result; <span class="comment">// 读取的结果</span></span><br><span class="line">&#125;;</span><br><span class="line">fr.readAsDataUrl(file); <span class="comment">// readAsArrayBuffer</span></span><br></pre></td></tr></table></figure></p>
+<p>可以干什么呢？例如图片上传之前的本地预览（甚至基于canvas的编辑）等等都可以实现了。</p>
+<p><code>Blob</code>的其他构造方法多而杂，这里就先不到处搬运文档了。</p>
+<h2 id="消费二进制数据"><a href="#消费二进制数据" class="headerlink" title="消费二进制数据"></a>消费二进制数据</h2><p>何谓消费？最常见的方式也许就是通过XHR2直接把二进制数据以文件方式POST到服务端去。</p>
+<p>这里我比较推荐使用<a href="https://developer.mozilla.org/en-US/docs/Web/API/FormData" target="_blank" rel="noopener">FormData</a>来构造POST数据。因为在服务端收的时候会比较容易一些，具体有兴趣可以去找找别人的例子。</p>
+<p>虽然直接提交<code>ArrayBuffer</code>也是可以的，但是这种时候服务端收到的POST body会是一大团，用起来不方便。如果要使用<code>FormData</code>来提交<code>ArrayBuffer</code>，需要先将其构造成<code>Blob</code>。</p>
+<h2 id="对Typed-Array的构造留个心眼"><a href="#对Typed-Array的构造留个心眼" class="headerlink" title="对Typed Array的构造留个心眼"></a>对Typed Array的构造留个心眼</h2><p>当使用<code>new xxxxxArray(arrayBuffer)</code>这个重载进行构造的时候，它会默认基于此<code>ArrayBuffer</code>进行构造。但当使用<code>new xxxxArray(another_typed_array)</code>这个重载的时候，则是进行“拷贝构造”，这样两个Typed Array会指向不同的buffer，需要注意这是否符合预期。</p>
+<p>如果需要基于同一个<code>ArrayBuffer</code>来构造Typed Array，可以使用Typed Array的<code>buffer</code>, <code>byteLength</code>, <code>byteOffset</code>来获取它背后的<code>ArrayBuffer</code>。</p>
+<h2 id="Tips（坑）"><a href="#Tips（坑）" class="headerlink" title="Tips（坑）"></a>Tips（坑）</h2><h3 id="对内存对齐留个心眼"><a href="#对内存对齐留个心眼" class="headerlink" title="对内存对齐留个心眼"></a>对内存对齐留个心眼</h3><p>当使用ArrayBuffer来构造Typed Array的时候，可以指定<code>byteOffset</code>参数，例如</p>
+<figure class="highlight haxe"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> buffer = get_array_buffer_some_how();</span><br><span class="line"><span class="keyword">var</span> i16 = <span class="keyword">new</span> <span class="type">Int16Array</span>(buffer, <span class="number">10</span>);</span><br></pre></td></tr></table></figure>
+<p>上面的代码就能以<code>buffer</code>向后偏移10字节处为起点来构造<code>Int16Array</code>，但是如果将10设置为一个奇数，会发现如下错误：</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RangeError: <span class="built_in">start</span> <span class="built_in">offset</span> <span class="keyword">of</span> Int16Array should be <span class="keyword">a</span> multiple <span class="keyword">of</span> <span class="number">2</span></span><br></pre></td></tr></table></figure>
+<p>这是因为Typed Array对内存对齐有要求，它不能在非对齐的位置建立，同理，<code>Uint32Array</code>和<code>Int32Array</code>则要求偏移量是4字节对齐的。</p>
+<p>因此如果你希望在非对齐的位置进行读写，则需要借助<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" target="_blank" rel="noopener">DataView</a>的帮忙。</p>
+<h3 id="对字节序留个心眼"><a href="#对字节序留个心眼" class="headerlink" title="对字节序留个心眼"></a>对字节序留个心眼</h3><p><strong>我们日常中所写的程序，几乎都不需要关心<a href="https://zh.wikipedia.org/wiki/%E5%AD%97%E8%8A%82%E5%BA%8F" target="_blank" rel="noopener">字节序</a></strong>，因此这个问题没那么严重，知道自己的程序会有字节序问题的人，开发到这里也肯定会知道问题的存在，但这里还是稍微提一下。</p>
+<p>按照MDN的说法，Typed Array只会使用当前平台的字节序，例如我们现在用的桌面电脑不论PC还是Mac都是x86/x64的，也就是little-endian了。</p>
+<p>使用<code>DataView</code>，不仅可以解决上面说到的内存对齐的问题，还可以指定读写时的字节序，具体参数都在文档里面了，就不搬运了。</p>
+<p>使用<code>DataView</code>配合Typed Array也可以做到一个检测当前平台字节序的技巧：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">isLittleEndian</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> buf = <span class="keyword">new</span> <span class="built_in">ArrayBuffer</span>(<span class="number">2</span>);</span><br><span class="line">    <span class="keyword">var</span> view = <span class="keyword">new</span> <span class="built_in">DataView</span>(buf);</span><br><span class="line">    view.setInt16(<span class="number">0</span>, <span class="number">256</span>, <span class="literal">true</span>); <span class="comment">// 显式以little endian写入数据</span></span><br><span class="line">    <span class="comment">// 此时buf里的内存布局应该是 00 01</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> i16 = <span class="keyword">new</span> <span class="built_in">Int16Array</span>(buf);</span><br><span class="line">    <span class="comment">// 如果以little endian读取，它就是256；以big endian读取，则是1</span></span><br><span class="line">    <span class="keyword">return</span> (i16[<span class="number">0</span>] === <span class="number">256</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果你编写的程序需要垮体系结构例如x86/ARM/PPC等，则在交换文件和网络包的时候需要谨慎处理字节序，当然一个办法是在这些地方预先规范统一字节序以防后患。不过那些都是题外话了。</p>
+<h3 id="小姐小结"><a href="#小姐小结" class="headerlink" title="小姐小结"></a><del>小姐</del>小结</h3><p>使用<code>ArrayBuffer</code>来存储一段字节，使用Typed Array来构建一个具体数值类型的访问窗口，使用<code>DataView</code>对非对齐或在乎字节序的<code>ArrayBuffer</code>进行更精确的操作，使用XHR2, <code>Blob</code>, <code>File</code>, <code>FileReader</code>, <code>FormData</code>等多种方式来获取或消费<code>ArrayBuffer</code>。</p>
+<p>另外罗嗦一句，浏览器还提供了一系列所谓的“Binary String”，就是一些看起来像乱码一样的字符串，然后又提供了<code>atob</code>/<code>btoa</code>这种方式来对Base64和“Binary String”进行相互转换，甚至<code>FileReader</code>还提供了<code>readAsBinaryString</code>方法（已经废弃了，善哉）。<strong>这个Binary String真是谁用谁遭殃</strong>，别问我为什么知道……</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

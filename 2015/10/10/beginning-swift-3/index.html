@@ -1,0 +1,291 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>Swift入门笔记-3 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="霉霉斯威夫特入门笔记，继续流水账。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Swift入门笔记-3">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-10-10T15:33:33.000Z"><a href="/2015/10/10/beginning-swift-3/">Oct 10 2015</a></time>
+      
+      
+  
+    <h1 class="title">Swift入门笔记-3</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p><del>霉霉</del>斯威夫特入门笔记，继续流水账。</p>
+<a id="more"></a>
+<h1 id="5-错误处理"><a href="#5-错误处理" class="headerlink" title="5. 错误处理"></a>5. 错误处理</h1><p>Swift的错误处理使用比较常见的结构化异常处理方式，配合Optional类型。</p>
+<h2 id="异常类型"><a href="#异常类型" class="headerlink" title="异常类型"></a>异常类型</h2><p>有如C#里，<code>Exception</code>是所有异常的基类，Swift里有<code>ErrorType</code>这个协议（协议有点像<code>interface</code>，以后再说）来充当异常的。</p>
+<p>由于Swift里面可以让枚举也实现协议，于是可以写出这种看起来很奇怪的代码（搬运例子）</p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">VendingMachineError</span>: <span class="title">ErrorType</span> &#123;</span></span><br><span class="line">    <span class="keyword">case</span> InvalidSelection</span><br><span class="line">    <span class="keyword">case</span> InsufficientFunds(<span class="symbol">required:</span> Double)</span><br><span class="line">    <span class="keyword">case</span> OutOfStock</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="抛出异常"><a href="#抛出异常" class="headerlink" title="抛出异常"></a>抛出异常</h2><p>有点像JAVA，声明函数的时候加一个<code>throws</code>就表示这个函数可能会抛出异常，在这个函数里就能用<code>throw</code>了。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">willThrow</span><span class="params">()</span></span> <span class="keyword">throws</span> &#123;</span><br><span class="line">    <span class="comment">// 这里就可以throw</span></span><br><span class="line">    <span class="keyword">throw</span> <span class="type">VendingMachineError</span>.<span class="type">OutOfStock</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">wontThrow</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// 这里就不能throw</span></span><br><span class="line">    <span class="comment">// throw VendingMachineError.OutOfStock</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="捕获异常"><a href="#捕获异常" class="headerlink" title="捕获异常"></a>捕获异常</h2><p>在调用<code>throws</code>声明的函数的时候，就必须要捕获异常。如果你认为捕获异常是用<code>try</code>的话，只对了一半……</p>
+<p>很明显，<code>throws</code>声明是具有传染性的，一旦一个函数链上有某个函数会抛异常，那么它的上游必须能够妥善处理这个异常，否则上游就得继续抛异常，上游的上游……</p>
+<p>对于<del>我们无处安放的青春</del>无法妥善处理的异常，只能继续向上抛，于是Swift提供了一个语法糖</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">cannotHandleError</span><span class="params">()</span></span> <span class="keyword">throws</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> willThrow()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="真·捕获异常"><a href="#真·捕获异常" class="headerlink" title="真·捕获异常"></a>真·捕获异常</h2><p>要想捕获到异常，需要这样：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">canHandleError</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> cannotHandleError()</span><br><span class="line">    &#125; <span class="keyword">catch</span> <span class="type">VendingMachineError</span>.<span class="type">OutOfStock</span> &#123;</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">"sold out"</span>)</span><br><span class="line">    &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">"oops"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中<code>catch</code>和之前<code>switch-case</code>一样，支持模式匹配语法。</p>
+<h2 id="无视异常"><a href="#无视异常" class="headerlink" title="无视异常"></a>无视异常</h2><p>如果调用一个<code>throws</code>方法的时候，“自认为”这次它不会抛出异常，可以用<code>try!</code>来调用，这样不会让<code>throws</code>传染。如果在运行时发生异常，它会造成运行时错误。</p>
+<h2 id="收尾工作"><a href="#收尾工作" class="headerlink" title="收尾工作"></a>收尾工作</h2><p>Swift没有<code>finally</code>，有点像Go那样有个<code>defer</code></p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">canHandleError</span><span class="params">()</span></span> -&gt; <span class="type">String</span> &#123;</span><br><span class="line">    <span class="keyword">defer</span> &#123;</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">"do some cleaning up before return"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> cannotHandleError()</span><br><span class="line">    &#125; <span class="keyword">catch</span> <span class="type">VendingMachineError</span>.<span class="type">OutOfStock</span> &#123;</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">"sold out"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"over"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>defer</code>代码块会在函数结束之后，<code>return</code>之前执行，即使执行过程中发生了异常，也会保证被执行。而且和Go类似，一个函数里有多个<code>defer</code>的时候它们是倒序执行的。</p>
+<h1 id="6-类型转换"><a href="#6-类型转换" class="headerlink" title="6. 类型转换"></a>6. 类型转换</h1><h2 id="类型检查"><a href="#类型检查" class="headerlink" title="类型检查"></a>类型检查</h2><p>和C#非常像，用<code>is</code>来检查一个对象是否是某个类型的实例</p>
+<h2 id="type-casting"><a href="#type-casting" class="headerlink" title="type casting"></a>type casting</h2><p>还是和C#非常像，使用<code>as</code>来做类型转换。</p>
+<p>不过<code>as</code>有两种，一种是<code>as?</code>，转换结果是一个Optional类型，转换失败的时候就为<code>nil</code>。另一种是<code>as!</code>，转换失败的时候直接抛出运行时错误。</p>
+<h2 id="“万物之源”类型"><a href="#“万物之源”类型" class="headerlink" title="“万物之源”类型"></a>“万物之源”类型</h2><p>Go里有两种“万物之源”类型，一种是<code>AnyObject</code>，一种是<code>Any</code>，前者包含任意<code>class</code>的，后者包含任意类型（包括函数）。</p>
+<p>在使用<code>as</code>转换一个数组的时候，有一个类似C# 4.0里泛型逆变的语法糖</p>
+<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> movie <span class="keyword">in</span> someObjects <span class="keyword">as</span>! [Movie] &#123;</span><br><span class="line">    <span class="comment">// ..</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中<code>someObjects</code>本身是一个<code>[AnyObject]</code>，在遍历的时候把它转成了<code>[Movie]</code>。然而对于真·泛型类型，似乎不起作用</p>
+<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Container</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> c1 = Container&lt;Shape&gt;()</span><br><span class="line"><span class="keyword">var</span> c2: Container&lt;Rect&gt;? = c1 <span class="keyword">as</span>? Container&lt;Rect&gt;</span><br></pre></td></tr></table></figure>
+<p>发现c2是<code>nil</code>，Xcode也在c2那一行提示了这个转换永远不可能成功（好残忍）。</p>
+<h1 id="7-扩展"><a href="#7-扩展" class="headerlink" title="7. 扩展"></a>7. 扩展</h1><p>Swift提供给一个类添加功能的能力，这有点像是Go里的“先定义类型，再实现接口”这种说法，但事实上看疗效的话更像是Ruby那种可以把语言改得面目全非的样子。</p>
+<p>Swift 中的扩展可以：（搬运）</p>
+<ul>
+<li>添加getter/setter（包括静态的）</li>
+<li>添加方法（包括静态的）</li>
+<li>提供新的构造器</li>
+<li>定义下标脚本</li>
+<li>定义和使用新的嵌套类型</li>
+<li>使一个已有类型符合某个协议</li>
+</ul>
+<p>语法就不演示了，很简单的。</p>
+<h1 id="8-协议"><a href="#8-协议" class="headerlink" title="8. 协议"></a>8. 协议</h1><p>Swift里的<code>protocol</code>就是C#和Java里的<code>interface</code></p>
+<p>协议的语法跟C#太像了，不写例子了…………</p>
+<p>协议可以用来规定属性getter/setter（包括静态的）、方法（包括静态的）、构造函数。</p>
+<p>Swift里的协议可以提供默认实现，也就是说它在一定程度上可以当做<code>abstract class</code>的作用。</p>
+<p>其他什么实现协议、协议继承、协议组合这些，看一眼就明白了……</p>
+<h1 id="9-泛型"><a href="#9-泛型" class="headerlink" title="9. 泛型"></a>9. 泛型</h1><p>啊啊，有泛型的语言我喜欢。</p>
+<p>Swift里的泛型和C#的如出一辙，并且Swift里也有<code>where</code>从句来对泛型参数进行约束。</p>
+<p>惟独在泛型协议这一块，Swift用起来很奇怪，比如我想定义一个泛型List接口，在C#里：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">IList</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">    <span class="comment">// 我瞎写的可能语法有点不全对</span></span><br><span class="line">    <span class="keyword">void</span> Push(T item);</span><br><span class="line">    <span class="built_in">int</span> Count &#123; <span class="keyword">get</span>; &#125;</span><br><span class="line">    T <span class="keyword">this</span>[<span class="built_in">int</span> index] &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在Swift里要用一个叫“关联类型”的特性</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">protocol</span> <span class="title">IList</span> </span>&#123;</span><br><span class="line">    <span class="keyword">typealias</span> <span class="type">T</span></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">push</span><span class="params">(item: T)</span></span></span><br><span class="line">    <span class="keyword">var</span> <span class="built_in">count</span>: <span class="type">Int</span> &#123; <span class="keyword">get</span> &#125;</span><br><span class="line">    <span class="keyword">subscript</span>(index: <span class="type">Int</span>) -&gt; <span class="type">T</span> &#123; <span class="keyword">get</span> <span class="keyword">set</span> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>突然又不好看了……</p>
+<p>这样可以用一个具体类型来实现它</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">IntList</span>: <span class="type">IList &#123;</span></span></span><br><span class="line">    <span class="keyword">typealias</span> T = <span class="built_in">Int</span></span><br><span class="line">    func push(item: <span class="built_in">Int</span>) &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> count: <span class="built_in">Int</span> &#123;</span><br><span class="line">        <span class="keyword">get</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    subscript(index: <span class="built_in">Int</span>) -&gt; <span class="built_in">Int</span> &#123;</span><br><span class="line">        <span class="keyword">get</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">set</span> &#123;</span><br><span class="line">            </span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>因为有类型推导，上面的<code>typealias T = Int</code>可以省略。</p>
+<p>也可以实现成泛型的：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">GenericList</span>&lt;<span class="title">T</span>&gt;: <span class="title">IList</span> </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> items = [<span class="type">T</span>]()</span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">push</span><span class="params">(item: T)</span></span> &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> <span class="built_in">count</span>: <span class="type">Int</span> &#123;</span><br><span class="line">        <span class="keyword">get</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">subscript</span>(index: <span class="type">Int</span>) -&gt; <span class="type">T</span> &#123;</span><br><span class="line">        <span class="keyword">get</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> items[index]</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">set</span> &#123;</span><br><span class="line">            </span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="to-be-continued"><a href="#to-be-continued" class="headerlink" title="to be continued"></a>to be continued</h1><p>今天先到这儿吧（好少）…………</p>
+<p>等等，后面好像，没什么东西可以说了，访问限制、运算符重载什么的，看一眼就知道了啊。</p>
+<p>要不后面就开始看看iOS开发的吧。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>在JavaScript中实现LINQ——一次“失败”的尝试 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="这篇文章的起因是我在知乎上对JavaScript 函数式编程存在性能问题么？这个问题的回答。其实在这个问题之前挺久我就想做相关的尝试，但懒癌无药医，挖坑如山倒，填坑如抽丝。
+废话不多说，走你。
+C# 3.0引入了引以为豪的LINQ（Language INtergrated Query），可以用类函数式的方式操作集合（C#中的IEnumerable接口）。
+在JS中，数组也有类似的filter、map、reduce一类方法，但存在重复遍历问题，利用C#中LINQ的思路，给JS实现一套LINQ是否可行呢？">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="在JavaScript中实现LINQ——一次“失败”的尝试">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2017-02-04T15:33:33.000Z"><a href="/2017/02/04/a-failed-attemption-to-js-linq/">Feb 4 2017</a></time>
+      
+      
+  
+    <h1 class="title">在JavaScript中实现LINQ——一次“失败”的尝试</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>这篇文章的起因是我在知乎上对<a href="https://www.zhihu.com/question/54637225/answer/140613065" target="_blank" rel="noopener">JavaScript 函数式编程存在性能问题么？</a>这个问题的回答。其实在这个问题之前挺久我就想做相关的尝试，但懒癌无药医，挖坑如山倒，填坑如抽丝。</p>
+<p>废话不多说，走你。</p>
+<p>C# 3.0引入了引以为豪的LINQ（Language INtergrated Query），可以用类函数式的方式操作集合（C#中的IEnumerable<t>接口）。</t></p>
+<p>在JS中，数组也有类似的<code>filter</code>、<code>map</code>、<code>reduce</code>一类方法，但存在重复遍历问题，利用C#中LINQ的思路，给JS实现一套LINQ是否可行呢？</p>
+<a id="more"></a>
+<h1 id="C-中的LINQ"><a href="#C-中的LINQ" class="headerlink" title="C#中的LINQ"></a>C#中的LINQ</h1><p>C#中的LINQ是通过<code>yield</code>来避免重复遍历的，抽象的说，<code>Where</code>(对应filter)、<code>Select</code>(对应map)这类的方法调用的时候，都只会把操作“暂存”起来，直到调用了<code>ToArray</code>、<code>Aggregate</code>(对应reduce)之类的方法，才会“驱动”它去进行遍历。</p>
+<p>举一个简单的例子</p>
+<figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">var array = new []&#123; <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span> &#125;;</span><br><span class="line">var sum = array.Where(n =&gt; n % <span class="number">2</span> === <span class="number">0</span>)</span><br><span class="line">               .Select(n =&gt; n + <span class="number">3</span>)</span><br><span class="line">               .Aggregate((sum, n) =&gt; sum + n, <span class="number">0</span>);</span><br><span class="line"><span class="comment">// 代码不一定能编译，我是裸写的</span></span><br></pre></td></tr></table></figure>
+<p>上面是一个最基本的<code>filter</code>/<code>map</code>/<code>reduce</code>的过程（下文也会继续用这个例子），只有在<code>Aggregate</code>调用的时候，才会对数组进行遍历，而<code>Where</code>和<code>Select</code>只是一些类型为<code>IQueryable&lt;T&gt;</code>的中间过程。</p>
+<p>C#中的LINQ得益于C#的<code>yield</code>关键字，配合First-Class-Function可以不费吹灰之力地构建<code>IEnumerable&lt;T&gt;</code>，而C#中的<code>foreach</code>提供了对<code>IEnumerable&lt;T&gt;</code>的语法糖，这样就可以很自然的对LINQ的中间结果进行二次加工，而不需要繁琐地手工调用<code>.Next()</code>。</p>
+<h1 id="JS中的filter-map-reduce"><a href="#JS中的filter-map-reduce" class="headerlink" title="JS中的filter/map/reduce"></a>JS中的filter/map/reduce</h1><p>JS中的原生数组就自带了<code>filter</code>/<code>map</code>/<code>reduce</code>等一系列函数化的集合操作方法，但使用中有一个隐患就是，每次调用它们都会进行一次完整的遍历，这样当用这样连写的风格，就会造成重复遍历</p>
+<figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">var</span> <span class="built_in">sum</span> = array.filter(<span class="built_in">n</span> =&gt; <span class="built_in">n</span> % <span class="number">2</span> === <span class="number">0</span>)</span><br><span class="line">               .map(<span class="built_in">n</span> =&gt; <span class="built_in">n</span> + <span class="number">3</span>)</span><br><span class="line">               .reduce((<span class="built_in">sum</span>, <span class="built_in">n</span>) =&gt; <span class="built_in">sum</span> + <span class="built_in">n</span>, <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<p>上面的代码，在<code>filter</code>和<code>map</code>被调用的时候，都会遍历一次数组，<code>reduce</code>的时候再遍历一次，这样总共就被遍历了三次，当集合比较大的时候，这估计不是大家所想见发生的事情。</p>
+<p>如果在<code>filter</code>/<code>map</code>/<code>reduce</code>的回调函数里打印一些调试信息，我们会发现调用的次序大概会是这样的</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">filter</span><br><span class="line">filter</span><br><span class="line">filter</span><br><span class="line"><span class="built_in">..</span>. x10</span><br><span class="line">map</span><br><span class="line">map</span><br><span class="line">map</span><br><span class="line"><span class="built_in">..</span>. x5</span><br><span class="line">reduce</span><br><span class="line">reduce</span><br><span class="line">reduce</span><br><span class="line"><span class="built_in">..</span>. x5</span><br></pre></td></tr></table></figure>
+<h1 id="JS中的LINQ"><a href="#JS中的LINQ" class="headerlink" title="JS中的LINQ"></a>JS中的LINQ</h1><h2 id="yield-generator"><a href="#yield-generator" class="headerlink" title="yield/generator"></a>yield/generator</h2><p>ES6中有了<code>yield</code>和Generator Function（不熟悉的可以先回顾一下我几百年前写的<a href="/2014/11/28/a-brief-look-at-es6-generator-function/">这篇</a>和<a href="/2015/01/18/more-about-es6-generator-function/">这篇</a>文章），并且，由于<code>Symbol.iterator</code>和<code>for of</code>语法的引入，能用生成器构造集合了，并且还能和<code>for of</code>无缝衔接。</p>
+<p>也就是说，ES6已经有了C#那样优雅地实现LINQ的基础设施，我们就来实现一个简单的试试。</p>
+<h2 id="IQueryable"><a href="#IQueryable" class="headerlink" title="IQueryable"></a>IQueryable</h2><p>首先我们像C#那样实现一个<code>IQueryable</code>类，并且它通过<code>Symbol.iterator</code>能够支持被<code>for of</code>遍历</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Queryable</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>(iterable) &#123;</span><br><span class="line">    <span class="keyword">this</span>.iterable = iterable</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  [<span class="built_in">Symbol</span>.iterator]() &#123;</span><br><span class="line">    <span class="keyword">let</span> iterator = <span class="keyword">this</span>.iterable[<span class="built_in">Symbol</span>.iterator]()</span><br><span class="line">    <span class="keyword">return</span> iterator</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">Array</span>.prototype.asQueryable = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> Queryable(<span class="keyword">this</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由于我们是“面向接口编程”的，这里我们并不关心<code>new Queryable(xxx)</code>传入的是一个<code>Array</code>、一个<code>Generator</code>还是一个<code>Queryable</code>，反正它们都可以被<code>for of</code>遍历。</p>
+<p>然后为了方便，在<code>Array.prototype</code>上挂了一个方法，别嫌脏，娱乐而已。</p>
+<p>尝试一下</p>
+<figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">let arr = [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]</span><br><span class="line">for (let item of arr.asQueryable()) &#123;</span><br><span class="line">  console.log(item)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="filter-map-reduce"><a href="#filter-map-reduce" class="headerlink" title="filter/map/reduce"></a>filter/map/reduce</h2><p>我们的<code>Queryable</code>类已经可以享受<code>for of</code>语法糖的便利了，然后我们就可以基于这个给它愚快地添加各种集合操作方法了</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span>* <span class="title">_filter</span>(<span class="params">iterable, predicate</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> item <span class="keyword">of</span> iterable) &#123;</span><br><span class="line">    <span class="keyword">let</span> checked = predicate(item)</span><br><span class="line">    <span class="keyword">if</span> (checked) &#123;</span><br><span class="line">      <span class="keyword">yield</span> item</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span>* <span class="title">_map</span>(<span class="params">iterable, mapper</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> item <span class="keyword">of</span> iterable) &#123;</span><br><span class="line">    <span class="keyword">let</span> mapped = mapper(item)</span><br><span class="line">    <span class="keyword">yield</span> mapped</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Queryable</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>(iterable) &#123;</span><br><span class="line">    <span class="keyword">this</span>.iterable = iterable</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  [<span class="built_in">Symbol</span>.iterator]() &#123;</span><br><span class="line">    <span class="keyword">let</span> iterator = <span class="keyword">this</span>.iterable[<span class="built_in">Symbol</span>.iterator]()</span><br><span class="line">    <span class="keyword">return</span> iterator</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  filter(predicate) &#123;</span><br><span class="line">    <span class="keyword">let</span> iterable = _filter(<span class="keyword">this</span>, predicate)</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Queryable(iterable)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  map(mapper) &#123;</span><br><span class="line">    <span class="keyword">let</span> iterable = _map(<span class="keyword">this</span>, mapper)</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Queryable(iterable)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  reduce(reducer, initial) &#123;</span><br><span class="line">    <span class="keyword">let</span> result = initial</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> item <span class="keyword">of</span> <span class="keyword">this</span>) &#123;</span><br><span class="line">      result = reducer(result, item)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里注意，<code>filter</code>和<code>map</code>分别调用了<code>_filter</code>和<code>_map</code>方法，它们返回的结果都是<code>Generator</code>，我们知道一个<code>Generator</code>只定义了集合如何“被遍历”，而事实上它没有真正发生操作，需要调用<code>next()</code>或者<code>for of</code>（也就是<code>next()</code>的语法糖）来“驱动”它进行遍历。</p>
+<p>而<code>reduce</code>当中调用了<code>for of</code>，也就是它真正发生了遍历。</p>
+<p>赶紧爽一爽</p>
+<figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">var</span> <span class="built_in">sum</span> = array.asQueryable()</span><br><span class="line">               .filter(<span class="built_in">n</span> =&gt; <span class="built_in">n</span> % <span class="number">2</span> === <span class="number">0</span>)</span><br><span class="line">               .map(<span class="built_in">n</span> =&gt; <span class="built_in">n</span> + <span class="number">3</span>)</span><br><span class="line">               .reduce((<span class="built_in">sum</span>, <span class="built_in">n</span>) =&gt; <span class="built_in">sum</span> + <span class="built_in">n</span>, <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<p>如果在<code>filter</code>/<code>map</code>/<code>reduce</code>的回调函数里打印一些调试信息，我们会发现调用的次序大概会是这样的</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">filter/map/reduce</span><br><span class="line">filter</span><br><span class="line">filter/map/reduce</span><br><span class="line">filter</span><br><span class="line"><span class="built_in">..</span>.</span><br></pre></td></tr></table></figure>
+<p>只遍历了一遍</p>
+<h2 id="扩展LINQ"><a href="#扩展LINQ" class="headerlink" title="扩展LINQ"></a>扩展LINQ</h2><p>有了上面三个方法我们可以顺便构造一下<code>length</code>和<code>toArray</code>这类的方法，比如</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Queryable.prototype.length = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">this</span>.reduce(<span class="function"><span class="params">n</span> =&gt;</span> n + <span class="number">1</span>, <span class="number">0</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Queryable.prototype.toArray = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">this</span>.reduce(<span class="function">(<span class="params">arr, it</span>) =&gt;</span> &#123;</span><br><span class="line">    arr.push(it)</span><br><span class="line">    <span class="keyword">return</span> arr</span><br><span class="line">  &#125;, [])</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当然其实<code>map</code>/<code>reduce</code>都是<code>foldl</code>/<code>foldr</code>的具象（吃我一发安利，参考我写的<a href="/2015/10/21/real-functional-programming-in-javascript-1/">使用JavaScript实现“真·函数式编程”</a>，所以上面的那些方法其实都可以写得更“函数式”，但既然这篇文章只是为了实验，就不搞那么多幺蛾子了。</p>
+<h2 id="性能测试"><a href="#性能测试" class="headerlink" title="性能测试"></a>性能测试</h2><p>我们用<a href="https://www.npmjs.com/package/benchmark" target="_blank" rel="noopener">benchmark</a>模块对上述代码进行性能测试，并且引入两个对照组，不多说了，直接看代码吧</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">useRawLoop</span><span class="params">()</span> &#123;</span></span><br><span class="line">  let result = <span class="number">0</span></span><br><span class="line">  <span class="keyword">for</span> (let <span class="built_in">i</span> = <span class="number">0</span>; <span class="built_in">i</span> &lt; arr.<span class="built_in">length</span>; ++<span class="built_in">i</span>) &#123;</span><br><span class="line">    let n = arr[<span class="built_in">i</span>]</span><br><span class="line">    <span class="keyword">if</span> (n <span class="comment">% 2 === 0) &#123;</span></span><br><span class="line">      n += <span class="number">3</span></span><br><span class="line">      result += n</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">useLoop</span><span class="params">()</span> &#123;</span></span><br><span class="line">  let result = <span class="number">0</span></span><br><span class="line">  <span class="keyword">for</span> (let n of arr) &#123;</span><br><span class="line">    <span class="keyword">if</span> (isEven(n)) &#123;</span><br><span class="line">      n = add3(n)</span><br><span class="line">      result = sum(result, n)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">useArray</span><span class="params">()</span> &#123;</span></span><br><span class="line">  <span class="keyword">return</span> arr.filter(isEven)</span><br><span class="line">            .map(add3)</span><br><span class="line">            .reduce(sum, <span class="number">0</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">useLINQ</span><span class="params">()</span> &#123;</span></span><br><span class="line">  <span class="keyword">return</span> arr.asQueryable()</span><br><span class="line">            .filter(isEven)</span><br><span class="line">            .map(add3)</span><br><span class="line">            .reduce(sum, <span class="number">0</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>用长度为100的数组进行测试，结果</p>
+<figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">RawLoop x <span class="number">380</span>,<span class="number">068</span> ops/sec ±<span class="number">1.01</span>% (<span class="number">88</span> runs sampled)</span><br><span class="line">Loop x <span class="number">138</span>,<span class="number">121</span> ops/sec ±<span class="number">1.91</span>% (<span class="number">81</span> runs sampled)</span><br><span class="line">Array x <span class="number">59</span>,<span class="number">682</span> ops/sec ±<span class="number">1.14</span>% (<span class="number">89</span> runs sampled)</span><br><span class="line">LINQ x <span class="number">17</span>,<span class="number">235</span> ops/sec ±<span class="number">1.69</span>% (<span class="number">87</span> runs sampled)</span><br></pre></td></tr></table></figure>
+<p>可以看出，我们的LINQ性能非常非常的废柴，主要原因：</p>
+<ul>
+<li>JS对Generator的优化非常废柴</li>
+<li>JS对<code>for of</code>的优化非常废柴——因为它就是<code>Generator#next()</code>的语法糖</li>
+</ul>
+<h1 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h1><p>虽然我们通过ES6的一系列新特性给JS实现了lazy的LINQ，避免重复遍历，是实现了，但想象中的性能提高却是化为泡影。</p>
+<p>当然，通过不断优化，减少<code>for of</code>的使用，改为手工<code>.next()</code>遍历，也许性能还会高一些，但一来我不太相信它会有很明显的变化。二来更重要的是，不用<code>for of</code>的话，我们就不能实现“无痛”的集合操作代码编写了，既然已经不能“无痛”，那么同样“痛”的方法自然有性能更优的，而且根本不需要<code>Symbol.iterator</code>、Generator等等这一大堆新特性。</p>
+<p>所以这是一个成功的尝试，也是一个失败的尝试。成功之处在于很开心能看到ES6有如此强大的基础设施用于编写优雅代码，发挥创造力。失败之处么，自然是由于现阶段的JS引擎并没有对这些新引入的特性进行值得称道的优化，这也提醒我对于这些新特性——至少是说，需要runtime支持的新特性——不要盲目的追新。</p>
+<h1 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h1><p>时间来到2017年8月1日<del>中国人民解放军建军90周年</del>，在node.js 8.x上，新的V8对<code>for-of</code>和Iterator进行了惊人的优化，上面的测试结果变成了：</p>
+<figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">RawLoop x <span class="number">422</span>,<span class="number">242</span> ops/sec ±<span class="number">1.31</span>% (<span class="number">84</span> runs sampled)</span><br><span class="line">Loop x <span class="number">974</span>,<span class="number">206</span> ops/sec ±<span class="number">1.03</span>% (<span class="number">82</span> runs sampled)</span><br><span class="line">Array x <span class="number">63</span>,<span class="number">109</span> ops/sec ±<span class="number">1.11</span>% (<span class="number">85</span> runs sampled)</span><br><span class="line">LINQ x <span class="number">115</span>,<span class="number">294</span> ops/sec ±<span class="number">5.03</span>% (<span class="number">86</span> runs sampled)</span><br></pre></td></tr></table></figure>
+<p>使用<code>for-of</code>遍历数组竟然比用<code>for</code>循环直接遍历还要快一倍<del>这简直不科学，让我怀疑是不是掉进了陷阱</del>！！！而且用LINQ方式也比用Array原生方法迭代更快了，快了将近一倍！</p>
+<p>这意味着LINQ以后性能将会可以接受，它可行了！意味着在JS里面终于可以优雅地实现迭代器模式了！<del>哦，这样啊，真是一个激动人心的好消息啊，反正我是懒得去把它写完的。</del></p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

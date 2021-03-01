@@ -1,0 +1,254 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>JavaScript中定时器的精度 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="之前写了一篇文章介绍JS中的高精度计时，那么，与高精度相对的，低精度又是什么呢？或者说我们常接触到的精度是在什么水平？
+这篇文章主要探讨一下JS里常用的定时器，看看它们能达到什么精度。由于结论我也不知道，所以基本上这篇文章算边做实验边写的吧，有问题希望各位看官能帮忙指出。文中的实验覆盖范围很小，而且方法也极度不严谨，大家先且一看吧，也许有时间我会再重新做实验。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="JavaScript中定时器的精度">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2014-04-26T15:23:12.000Z"><a href="/2014/04/26/js-timing-precision/">Apr 26 2014</a></time>
+      
+      
+  
+    <h1 class="title">JavaScript中定时器的精度</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>之前写了<a href="/2014/03/16/hrt-in-js/">一篇文章</a>介绍JS中的高精度计时，那么，与高精度相对的，低精度又是什么呢？或者说我们常接触到的精度是在什么水平？</p>
+<p>这篇文章主要探讨一下JS里常用的定时器，看看它们能达到什么精度。由于结论我也不知道，所以基本上这篇文章算边做实验边写的吧，有问题希望各位看官能帮忙指出。文中的实验覆盖范围很小，而且方法也极度不严谨，大家先且一看吧，也许有时间我会再重新做实验。</p>
+<a id="more"></a>
+<h2 id="正传"><a href="#正传" class="headerlink" title="正传"></a>正传</h2><h3 id="setTimeout"><a href="#setTimeout" class="headerlink" title="setTimeout"></a>setTimeout</h3><p>曾几何时，有前辈教诲我们，JS里<code>setTimeout</code>是不精确的，因为它所做的事情只是把任务添加到事件队列当中。如果在这个任务执行之前有别的任务执行的比较慢（比如死循环、大规模DOM操作、fs.同步IO等），那么后面的任务就会被推迟执行了。</p>
+<p>与此同时，<code>setTimeout(func, 0)</code>是我们常见的一种奇怪的技巧，它可以让任务推迟执行，而又不推迟很多。说直观一点，通过这种技巧可以模拟一个低优先级的任务，比如我们在操作DOM的同时又希望<code>window.scrollTo(0, 0)</code>，也许我们就会把后者放在<code>setTimeout 0</code>当中。在没有研究清楚event loop前，这也许是心理安慰，但因地制宜地用这个技巧常常会发生一些老中医般的意想不到的神奇效果。</p>
+<p>我们先看看在没有任何其他繁忙任务时，<code>setTimeout 0</code>能达到多少精度。</p>
+<figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">var start = hrt()<span class="comment">;</span></span><br><span class="line">setTimeout(<span class="name">function</span>()&#123;</span><br><span class="line">  var now = hrt()<span class="comment">;</span></span><br><span class="line">  console.log(<span class="name">now</span> - start)<span class="comment">;</span></span><br><span class="line">&#125;, <span class="number">0</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<p>配合使用上回的高精度计时函数使用，在OSX Chrome34中，我这大概是9~10ms，而在node.js里则可以达到1.2~2.6ms的样子。然后我们慢慢增大延迟值，试着探索一下setTimeout有多少精度吧。<br>粗略实验下，发现在Chrome中，setTimeout的时间下限基本上就是9~10ms，当延迟在10多20这个水平时候，也能达到，但波动相当大。延迟到30以上，基本上实际时间比设置值只会多到1~2ms的样子；而在node中，即使设置很小的延迟，也能达到，但实际时间也会比设置值多个1~2ms。</p>
+<p>模拟一下setTimeout被推迟的情况<br><figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">var start = hrt()<span class="comment">;</span></span><br><span class="line">for (<span class="name">var</span> i=0<span class="comment">; i&lt;1e8; ++i) ;</span></span><br><span class="line">setTimeout(<span class="name">function</span>()&#123;</span><br><span class="line">  var now = hrt()<span class="comment">;</span></span><br><span class="line">  console.log(<span class="name">now</span> - start)<span class="comment">;</span></span><br><span class="line">&#125;, <span class="number">0</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure></p>
+<p>明显就看到时间变长多了，所以必须谨记<code>setTimeout</code>并不靠谱。</p>
+<h3 id="setInterval"><a href="#setInterval" class="headerlink" title="setInterval"></a>setInterval</h3><p>这是用来做周期触发的回调用的，首先我们也丧心病狂的试试<code>setInterval 0</code>吧。</p>
+<figure class="highlight xquery"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">var <span class="keyword">start</span> = hrt(),<span class="built_in"> last</span> = <span class="keyword">start</span>;</span><br><span class="line">var<span class="built_in"> id</span> = setInterval(<span class="keyword">function</span>()&#123;</span><br><span class="line">  var now = hrt();</span><br><span class="line">  console.log(now -<span class="built_in"> last</span>);</span><br><span class="line"> <span class="built_in"> last</span> = now;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (now - <span class="keyword">start</span> &gt; <span class="number">2000</span>) clearInterval<span class="built_in">(id</span>);</span><br><span class="line">&#125;, <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+<p>在Chrome里平均稳定在4.6ms左右一次，当时间设置到6ms以上时，基本上能达到，但实际触发时间比设置要大1ms左右。node这边依然要好一些，几乎能达到任何设置的时间，但也会有大概1ms的延迟。毫无疑问<code>setInterval</code>也是会被负荷重的任务推迟，就不演示了。</p>
+<h3 id="setImmediate"><a href="#setImmediate" class="headerlink" title="setImmediate"></a>setImmediate</h3><p>这是node.js才有的函数，我这里它大概有不到1ms的延迟。在朴灵的《深入浅出node.js》一书中对这个函数有比较详尽的解释，这里我就不赘述了。</p>
+<p>不得不说的是——setImmediate也会被同步的代码阻塞——yes, this is JavaScript。</p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>到这里，常用的setXXX系列手工产生异步的办法都看了一遍。不得不承认node与浏览器在这些核心函数上优化都是相当到位的。但是其他浏览器，包括windows上，尤其是某些老旧的IE，我对它们表示不乐观，还好我现在的工作很少和这些东西打交道，改天有时间我应该会再用手机做一次测试，以求更贴近我的工作环境。</p>
+<h2 id="番外篇"><a href="#番外篇" class="headerlink" title="番外篇"></a>番外篇</h2><h3 id="requestAnimationFrame"><a href="#requestAnimationFrame" class="headerlink" title="requestAnimationFrame"></a>requestAnimationFrame</h3><p>这个东西，我觉得基本上把它当做一个<code>setTimeout 0</code>来看待就行了，现在比较推崇用它来做动画，我们也看看它的精度吧。</p>
+<figure class="highlight vbscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">var start = hrt(), last = start;</span><br><span class="line"><span class="keyword">function</span> <span class="keyword">loop</span>()&#123;</span><br><span class="line">  var <span class="built_in">now</span> = hrt();</span><br><span class="line">  console.<span class="built_in">log</span>(<span class="built_in">now</span> - last);</span><br><span class="line">  last = <span class="built_in">now</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">now</span> - start &lt; <span class="number">2000</span>) requestAnimationFrame(<span class="keyword">loop</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">loop</span>();</span><br></pre></td></tr></table></figure>
+<p>我本来满心期望它有很稳定的触发间隔，但我失望了，从15ms多到17ms都有，不是很稳定。但据说它给浏览器带来的符合是更小的，所以会有更好的性能？这个15~17ms很有讲究，因为这刚好就是60FPS，似乎我还真没见过什么浏览器是超过60FPS的。</p>
+<h3 id="setZeroTimeout"><a href="#setZeroTimeout" class="headerlink" title="setZeroTimeout"></a>setZeroTimeout</h3><p>这是一个很有趣的黑科技(<a href="https://github.com/shahyar/setZeroTimeout-js" target="_blank" rel="noopener">github</a>)，它通过<code>postMessage</code>来为浏览器模拟<code>setImmediate</code>，（在可能的时候）避免使用<code>setTimeout 0</code>，试了一下，用它的确是能做到0~1ms的触发时间，简直厉害……</p>
+<p>值得一提的是，我们有时候会用<code>setTimeout</code>嵌套来达到与<code>setInterval</code>类似的效果，嵌套使用<code>setTimeout 0</code>还可以（我刚试了下，反复<code>setTimeout 0</code>能达到和<code>setInterval 0</code>一样的4~5ms精度），嵌套<code>setZeroTimeout</code>因为触发太频繁，不出一秒浏览器就直接卡死了……</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

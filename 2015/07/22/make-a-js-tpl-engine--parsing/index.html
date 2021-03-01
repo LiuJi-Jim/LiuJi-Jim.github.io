@@ -1,0 +1,286 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>来吧，造个模板引擎轮子——模板文件解析 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="接上篇，这一篇将介绍JS模板引擎是如何区分出“自然语言”和“模板语言”、以及如何进一步解析“模板语言”，最终我们需要拿到详细的模板语句结构。
+这里说的“自然语言”就是只要生成的目标文件，比如HTML/XML；“模板语言”就是……模板语言了。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="来吧，造个模板引擎轮子——模板文件解析">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-07-22T12:13:23.000Z"><a href="/2015/07/22/make-a-js-tpl-engine--parsing/">Jul 22 2015</a></time>
+      
+      
+  
+    <h1 class="title">来吧，造个模板引擎轮子——模板文件解析</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>接<a href="/2015/07/13/make-a-js-tpl-engine/">上篇</a>，这一篇将介绍JS模板引擎是如何区分出“自然语言”和“模板语言”、以及如何进一步解析“模板语言”，最终我们需要拿到详细的模板语句结构。</p>
+<p>这里说的“自然语言”就是只要生成的目标文件，比如HTML/XML；“模板语言”就是……模板语言了。</p>
+<a id="more"></a>
+<h2 id="定界符式的语法"><a href="#定界符式的语法" class="headerlink" title="定界符式的语法"></a>定界符式的语法</h2><h3 id="区分模板语言与自然语言"><a href="#区分模板语言与自然语言" class="headerlink" title="区分模板语言与自然语言"></a>区分模板语言与自然语言</h3><p>对于定界符式的语法，因为定界符通常都是一些犄角旮旯的符号，比如<code>&lt;%</code>/<code>%&gt;</code>这些符号是很难出现在正常的代码里面的。于是这种类型的模板语言，要从自然语言里面区分出来模板语言比较容易，这里介绍一种简单粗暴但实用的办法。以下面这一段代码为例。</p>
+<figure class="highlight mojolicious"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"list"</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">%</span></span></span><span class="perl"> <span class="keyword">if</span> (list.length &gt; <span class="number">0</span>) </span><span class="xml"><span class="tag">%&gt;</span></span></span><br><span class="line"><span class="xml">        <span class="tag">&lt;<span class="name">%</span></span></span><span class="perl"> <span class="keyword">foreach</span> item in list </span><span class="xml"><span class="tag">%&gt;</span></span></span><br><span class="line"><span class="xml">            <span class="tag">&lt;<span class="name">p</span>&gt;</span>Hello, <span class="tag">&lt;<span class="name">%=</span></span></span><span class="perl"> item.name </span><span class="xml"><span class="tag">%&gt;</span><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="xml">        <span class="tag">&lt;<span class="name">%</span></span></span><span class="perl"> /<span class="keyword">foreach</span> </span><span class="xml"><span class="tag">%&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">%</span></span></span><span class="perl"> /<span class="keyword">if</span> </span><span class="xml"><span class="tag">%&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p><strong>首先用左定界符，这里就是<code>&lt;%</code>，对输入代码进行一次<code>split</code></strong>，可以得到如下的结果（为了“美化”文章我把无用的空格先去了）</p>
+<figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;div class=<span class="string">"list"</span>&gt;</span><br><span class="line"><span class="built_in">if</span> (list.length &gt; <span class="number">0</span>) %&gt;</span><br><span class="line">foreach item in list %&gt; &lt;p&gt;Hello,</span><br><span class="line">= item.name %&gt;&lt;/p&gt;</span><br><span class="line">/foreach %&gt;</span><br><span class="line">/<span class="built_in">if</span> %&gt;&lt;/div&gt;</span><br></pre></td></tr></table></figure>
+<p>对于上面每一段，查看它是否包含右定界符<code>%&gt;</code></p>
+<ul>
+<li>如果不包含右定界符，那么将这段话以<strong>自然语言</strong>处理。<br>一般来说，它只会是整个源代码的第一段，否则你就会发现它其实是一个找不到与之匹配的空头（跟股票神马的没关系）。</li>
+<li>如果包含右定界符，将这段话以它拆分，左边一段是一条<strong>模板语言</strong>，右边一段以<strong>自然语言</strong>处理。</li>
+</ul>
+<p>经过上面步骤，刚才那些就成为了下面的结果（为了“美化”文章，我给<strong>模板语言</strong>都加了定界符，这样看起来不会太违和）。</p>
+<figure class="highlight mojolicious"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="xml">自然 <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"list"</span>&gt;</span></span></span><br><span class="line"><span class="xml">模板 <span class="tag">&lt;<span class="name">%</span></span></span><span class="perl"> <span class="keyword">if</span> (list.length &gt; <span class="number">0</span>) </span><span class="xml"><span class="tag">%&gt;</span></span></span><br><span class="line"><span class="xml">模板 <span class="tag">&lt;<span class="name">%</span></span></span><span class="perl"> <span class="keyword">foreach</span> item in list </span><span class="xml"><span class="tag">%&gt;</span></span></span><br><span class="line"><span class="xml">自然 <span class="tag">&lt;<span class="name">p</span>&gt;</span>Hello,</span></span><br><span class="line"><span class="xml">模板 <span class="tag">&lt;<span class="name">%=</span></span></span><span class="perl"> item.name </span><span class="xml"><span class="tag">%&gt;</span></span></span><br><span class="line"><span class="xml">自然 <span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="xml">模板 <span class="tag">&lt;<span class="name">%</span></span></span><span class="perl"> /<span class="keyword">foreach</span> </span><span class="xml"><span class="tag">%&gt;</span></span></span><br><span class="line"><span class="xml">模板 <span class="tag">&lt;<span class="name">%</span></span></span><span class="perl"> /<span class="keyword">if</span> </span><span class="xml"><span class="tag">%&gt;</span></span></span><br><span class="line"><span class="xml">自然 <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p><strong>注意，这里并没有考虑模板语法嵌套的问题</strong>，比如在Smarty里，其实是可以这样写的</p>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="meta">%</span> <span class="keyword">if</span> $list[&#123;<span class="meta">%</span> $key <span class="meta">%</span>&#125;] == <span class="string">'1'</span> <span class="meta">%</span>&#125;</span><br><span class="line">    &lt;div class=<span class="string">"first"</span>&gt;&lt;/div&gt;</span><br><span class="line">&#123;<span class="meta">%</span> /<span class="keyword">if</span> <span class="meta">%</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>注意第一行，在一组模板标签内，又嵌套了一组，用我们上面的那种处理逻辑，遇到这样的代码是会跪的。首先还是先按左定界符拆</p>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">(空)</span></span><br><span class="line"><span class="keyword">if</span> $list[</span><br><span class="line">$key <span class="meta">%</span>&#125;] == <span class="string">'1'</span> <span class="meta">%</span>&#125;&lt;div class=<span class="string">"first"</span>&gt;&lt;/div&gt;</span><br><span class="line">/<span class="keyword">if</span> <span class="meta">%</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>可以发现，第2行是不包含右定界符的，也许我们会把它当做自然语言，但事实上它并不是。而第3行中，有两个右定界符。</p>
+<p>这种语法就要复杂一些，我想了一个简单的办法，不知道可不可行。就是对于包含右定界符的段，如果超过1个右定界符，则对应往前“捞回”一段，重新标记成模板语言。但这样依然有一个难处，就是在捞回之后，左边的<code>if $list[</code>与右边的<code>] == &#39;1&#39;</code>这两句话它们其实分别不是一句完整合法的模板语句，于是处理过程中必须把嵌套层级关系保留下来，在后面构建语法树的时候还会用得上（其实这也是Smarty为什么又大又慢的一个重要原因，逃）</p>
+<h3 id="解析模板语言的语法"><a href="#解析模板语言的语法" class="headerlink" title="解析模板语言的语法"></a>解析模板语言的语法</h3><p>这个环节包含两个步骤，一个是处理每一条模板语句自身的内容，一个是处理他们的匹配关系。</p>
+<p>回到刚才的例子，这次先忽略那些自然语言，只看其中的模板语句</p>
+<figure class="highlight mojolicious"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="xml">模板 <span class="tag">&lt;<span class="name">%</span></span></span><span class="perl"> <span class="keyword">if</span> (list.length &gt; <span class="number">0</span>) </span><span class="xml"><span class="tag">%&gt;</span></span></span><br><span class="line"><span class="xml">模板 <span class="tag">&lt;<span class="name">%</span></span></span><span class="perl"> <span class="keyword">foreach</span> item in list </span><span class="xml"><span class="tag">%&gt;</span></span></span><br><span class="line"><span class="xml">模板 <span class="tag">&lt;<span class="name">%=</span></span></span><span class="perl"> item.name </span><span class="xml"><span class="tag">%&gt;</span></span></span><br><span class="line"><span class="xml">模板 <span class="tag">&lt;<span class="name">%</span></span></span><span class="perl"> /<span class="keyword">foreach</span> </span><span class="xml"><span class="tag">%&gt;</span></span></span><br><span class="line"><span class="xml">模板 <span class="tag">&lt;<span class="name">%</span></span></span><span class="perl"> /<span class="keyword">if</span> </span><span class="xml"><span class="tag">%&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p>先是对于每一条语句本身，需要进行一定的解析，这个阶段暂时只需要对它定性就可以，比如上面几条分别是</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>代码块<span class="built_in">open</span></span><br><span class="line"><span class="built_in">foreach</span>代码块<span class="built_in">open</span></span><br><span class="line">变量输出</span><br><span class="line"><span class="built_in">foreach</span>代码块<span class="built_in">close</span></span><br><span class="line"><span class="keyword">if</span>代码块<span class="built_in">close</span></span><br></pre></td></tr></table></figure>
+<p>当中不难发现，<code>if</code>和<code>/if</code>，<code>foreach</code>和<code>/foreach</code>是有匹配关系的，而<code>&lt;%= item.name %&gt;</code>是没有匹配关系的。这样我们需要对刚才输出的语句列表进行一次解析，构造一棵“语法树”。这里之所以要加引号，是因为我们并不需要真正建立起来语法树，至于为什么，也许要下一篇才能具体讲明白，这里就先卖个关子了。</p>
+<p>那么我们先只看对应关系，这个很简单，只需要对上面应用一次括号匹配就行了，当然这里匹配的不是括号，而是<code>if</code>和<code>/if</code>，<code>foreach</code>和<code>/foreach</code>这种对应的语句结构。括号匹配的算法是入门级的，就不赘述了。不过过程中可能需要一些特殊处理，比如<code>if/elseif/else</code>这样的组合并不是简单的对称地匹配就能解决的，但这并不难，事实上到了实际如果你真的要造个轮子你一定会有办法的（逃</p>
+<h2 id="raze-tpl非定界符式的语法"><a href="#raze-tpl非定界符式的语法" class="headerlink" title="raze-tpl非定界符式的语法"></a>raze-tpl非定界符式的语法</h2><p>因为我的raze-tpl轮子采用的是类似于微软大法的Razor语法，这种语法非常“骚”，下面我们把上述模板代码转换成对应的raze-tpl语法</p>
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;<span class="keyword">div</span> <span class="built_in">class</span>=<span class="string">"list"</span>&gt;</span><br><span class="line">    @<span class="keyword">if</span> (<span class="built_in">list</span>.<span class="built_in">length</span> &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        @foreach (<span class="built_in">item</span> <span class="keyword">in</span> <span class="built_in">list</span>) &#123;</span><br><span class="line">            &lt;p&gt;Hello, @(<span class="built_in">item</span>.<span class="built_in">name</span>)&lt;/p&gt;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&lt;/<span class="keyword">div</span>&gt;</span><br></pre></td></tr></table></figure>
+<p>可以看到没有明显的定界符了，起码是干净了不少的。当然，如果你把<code>@</code>（在raze-tpl暂时把它叫做<strong>leading char</strong>）当做定界符，再套一下上面的那种算法，似乎……</p>
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;<span class="keyword">div</span> <span class="built_in">class</span>=<span class="string">"list"</span>&gt;</span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">list</span>.<span class="built_in">length</span> &gt; <span class="number">0</span>) &#123;</span><br><span class="line">foreach (<span class="built_in">item</span> <span class="keyword">in</span> <span class="built_in">list</span>) &#123;&lt;p&gt;Hello,</span><br><span class="line">(<span class="built_in">item</span>.<span class="built_in">name</span>)&lt;/p&gt; &#125; &#125;&lt;/<span class="keyword">div</span>&gt;</span><br></pre></td></tr></table></figure>
+<p>对于其中的每一段，需要再进行一下对应的语法检测一下它是不是满足某种模板语句类型，才能确定它是不是模板语句，例如</p>
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">自然语言            &lt;<span class="keyword">div</span> <span class="built_in">class</span>=<span class="string">"list"</span>&gt;</span><br><span class="line">@<span class="keyword">if</span>条件代码块open   <span class="keyword">if</span> (<span class="built_in">list</span>.<span class="built_in">length</span> &gt; <span class="number">0</span>) &#123;</span><br><span class="line">@foreach代码块open foreach (<span class="built_in">item</span> <span class="keyword">in</span> <span class="built_in">list</span>) &#123;&lt;p&gt;Hello,</span><br><span class="line">@()               变量输出代码块&lt;/<span class="keyword">div</span>&gt;</span><br></pre></td></tr></table></figure>
+<p>这还没有结束，因为上面的那些模板语句当中，明显还夹杂了自然语言，于是乎依然需要对它进行进一步分析，也就是说，上面的“解析模板语言的语法”这一步是提前了。</p>
+<p><strong>这样做头会很晕</strong>，于是我用了一个听起来比较笨，但是实现更简单，可控性也更高的方法：<strong>逐字parse</strong>。</p>
+<p>回到源代码</p>
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;<span class="keyword">div</span> <span class="built_in">class</span>=<span class="string">"list"</span>&gt;</span><br><span class="line">    @<span class="keyword">if</span> (<span class="built_in">list</span>.<span class="built_in">length</span> &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        @foreach (<span class="built_in">item</span> <span class="keyword">in</span> <span class="built_in">list</span>) &#123;</span><br><span class="line">            &lt;p&gt;Hello, @(<span class="built_in">item</span>.<span class="built_in">name</span>)&lt;/p&gt;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&lt;/<span class="keyword">div</span>&gt;</span><br></pre></td></tr></table></figure>
+<p>以字符为单位，对上面的代码进行遍历</p>
+<ol>
+<li>在遇到<code>@</code>(leading char)之前，一切内容都当自然语言</li>
+<li>遇到<code>@</code>，进行如下判断<br>3.1. 它的后续是否是转义字符，如<code>@@</code>转义成<code>@</code><br>3.2. 它的后续是否是括号，如<code>@(item.name)</code>中的<code>(</code><br>3.3. 它的后续是否是raze-tpl语法关键字，如<code>@if</code>、<code>@foreach</code></li>
+<li>在上一步当中，根据判断出的类型，把源代码交给对应的处理器（Handler），处理代码块</li>
+<li>Handler处理结束后，遍历的游标已经被Handler挪到代码块结束点，把遍历状态改回自然语言状态</li>
+<li>继续遍历，直到遇到下一个<code>@</code></li>
+</ol>
+<p>不难发现一个重要的点：<strong>步骤3、4是递归的</strong>。</p>
+<p>以上面的代码为例</p>
+<figure class="highlight d"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;div <span class="keyword">class</span>=<span class="string">"list"</span>&gt; 自然语言</span><br><span class="line"><span class="keyword">@if</span>代码块 递归</span><br><span class="line">    <span class="keyword">@foreach</span>代码块 递归</span><br><span class="line">        &lt;p&gt;Hello, 自然语言</span><br><span class="line">        @(item.name) 变量输出 不需要递归</span><br><span class="line">                     但需要解析这一条语句，结束后遍历游标移动到反括号<span class="string">`)`</span></span><br><span class="line">        &lt;/p&gt; 自然语言</span><br><span class="line">    &#125; &lt;- <span class="keyword">foreach</span>代码块所对应的反花括号，<span class="keyword">foreach</span>代码块结束，遍历游标移动到此</span><br><span class="line">&#125; &lt;- <span class="keyword">if</span>代码块所对应的反花括号，<span class="keyword">if</span>代码块结束，遍历游标移动到此</span><br><span class="line">&lt;/div&gt; 自然语言</span><br></pre></td></tr></table></figure>
+<p>由于每一种类型、每一种模板语法关键字都有自己对应的语法结构和逻辑，因此在上面的递归过程中同时完成了上述“匹配、自身解析、遍历（递归）”这3件事情。这个过程大体上说就是编译原理当中的递归下降分析法的思路。</p>
+<p>因为需要在高阶代码（JS）层面进行字符串遍历，而用<code>split</code>的办法仅仅需要在低阶（引擎内置函数）层面上操作，这种办法运行速度肯定是会比<code>split</code>要慢的。但如前作考虑，在服务端使用的时候，可以缓存编译结果，编译过程是一次性的，影响不大；在浏览器端使用的时候，如果当真遇到编译影响了运行速度和体验，可以考虑使用art-template类似的模板预编译方式。总之编译这件事情，速度上并没有太重要，也许在某些大工程里编译速度很重要，但对我们这些模板它也不可能会太大。</p>
+<p>而编译器的小小性能损失却换来了灵活性还有这么骚的语法，还是很好玩的！</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>这篇文章讲了对于两种风格的模板语法，如何对它进行“词法分析”和“语法分析”，这里加引号，还是因为模板语言是一种混合语言，对它进行处理的时候与直接造一个某种语言的编译器还是有很大的区别的，尽管思路还是源于编译原理。</p>
+<p>不过事实上这种规模的parser，手写比机写（通过parser generator生成）相比反而还要容易些。而且手写的高可控也更方便我们进行下一步工作，也就是下一篇文章要写的内容——生成render函数。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

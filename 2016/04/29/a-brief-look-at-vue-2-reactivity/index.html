@@ -1,0 +1,281 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>Vue 2.0数据绑定实现一瞥 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="抽了点时间看了一下Vue 2.0的代码，主要着重于如何实现数据绑定这一块，在小右的指导下基本上算是知道了个六成吧。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Vue 2.0数据绑定实现一瞥">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2016-04-29T15:33:33.000Z"><a href="/2016/04/29/a-brief-look-at-vue-2-reactivity/">Apr 29 2016</a></time>
+      
+      
+  
+    <h1 class="title">Vue 2.0数据绑定实现一瞥</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>抽了点时间看了一下<a href="https://github.com/vuejs/vue" target="_blank" rel="noopener">Vue</a> 2.0的代码，主要着重于如何实现数据绑定这一块，在小右的指导下基本上算是知道了个六成吧。</p>
+<a id="more"></a>
+<h1 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h1><p>代码可以在Vue的GitHub Repo上<code>next</code>分支里找到。<code>cloc</code>一下：</p>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ cloc src/ test/ examples/</span><br><span class="line"><span class="code">     143 text files.</span></span><br><span class="line"><span class="code">     143 unique files.                                          </span></span><br><span class="line"><span class="code">      12 files ignored.</span></span><br><span class="line"></span><br><span class="line">http://cloc.sourceforge.net v 1.62  T=0.58 s (241.3 files/s, 18204.4 lines/s)</span><br><span class="line">-------------------------------------------------------------------------------</span><br><span class="line">Language                     files          blank        comment           code</span><br><span class="line">-------------------------------------------------------------------------------</span><br><span class="line">Javascript                     119            817           1003           7360</span><br><span class="line">HTML                            11             35             25            591</span><br><span class="line">CSS                              7             84             13            541</span><br><span class="line">JSON                             2              0              0             19</span><br><span class="line">-------------------------------------------------------------------------------</span><br><span class="line">SUM:                           139            936           1041           8511</span><br><span class="line">-------------------------------------------------------------------------------</span><br></pre></td></tr></table></figure>
+<p>其中，<code>src</code>是4000多行，可以不客气的说，Vue完全可以称为是轻量级。</p>
+<h2 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h2><p>Vue 2不再是Browser-Only的，所以加入了<code>render</code>和<code>runtime</code>的概念。</p>
+<p><code>render</code>是将v-dom树（下文中v-dom和v-tree基本表示一个意思）进行输出的实现层，比如<code>server</code>就是一个实现。</p>
+<p><code>runtime</code>是对v-tree进行数据绑定、更新、事件处理等具体操作的实现层，比如<code>web-runtime</code>就是将抽象dom操作全部实现在DOM API上。</p>
+<h1 id="数据绑定实现分析"><a href="#数据绑定实现分析" class="headerlink" title="数据绑定实现分析"></a>数据绑定实现分析</h1><h2 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h2><p>初始化一个Vue Instance的过程，本文不做重点描述，大概如下：</p>
+<ul>
+<li>模板编译——如果使用的是未进行预编译的模板，需要将其编译成一个构建v-dom的函数。</li>
+<li>生成初始v-dom——使用初始数据进行<code>_render</code>，得到一棵v-tree。</li>
+<li>mount——如果使用的是服务端渲染，则将v-tree和元素建立一个mount关系；如果是客户端渲染，则建立一个新的dom-tree。</li>
+</ul>
+<p>上述过程还包括对数据绑定的解析，对vm中的数据字段进行包装，通过<code>getter/setter</code>触发变化以此实现“Reactivity”，并收集依赖，注册Watcher。这个过程和现在的Vue差不多。</p>
+<p>现在，我们有了一棵v-tree，并且它已经mount到了一个dom-tree上，初始化的过程差不多就先介绍到这里吧。</p>
+<h2 id="实现数据绑定"><a href="#实现数据绑定" class="headerlink" title="实现数据绑定"></a>实现数据绑定</h2><p>下面以一个简单的计数器例子来介绍一下Vue 2中是如何把<code>getter/setter</code>与v-dom结合起来实现数据绑定的。</p>
+<figure class="highlight xquery"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"counter-app"</span>&gt;</span></span></span><br><span class="line"><span class="xml">  </span><span class="xml"><span class="tag">&lt;<span class="name">h1</span>&gt;</span>已续命</span><span class="xquery">&#123;<span class="built_in">&#123;count</span>&#125;</span><span class="xml">&#125;s<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span></span><br><span class="line"><span class="xml">  </span><span class="xml"><span class="tag">&lt;<span class="name">button</span> @<span class="attr">click</span>=<span class="string">"count++"</span>&gt;</span>喜+1<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span></span><br><span class="line"><span class="xml">  var counterApp = new Vue(</span><span class="xquery">&#123;</span></span><br><span class="line"><span class="xquery">    el: <span class="string">'#counter-app'</span>,</span></span><br><span class="line"><span class="xquery">    data: &#123;</span></span><br><span class="line"><span class="xquery">     <span class="built_in"> count</span>: <span class="number">0</span></span></span><br><span class="line"><span class="xquery">    &#125;</span></span><br><span class="line"><span class="xml">  &#125;)</span></span><br><span class="line"><span class="xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p>点击“喜+1”的时候，会执行<code>(this.$data.)count++</code>，这个<code>count</code>是一个“reactiveSetter”。<code>reactiveSetter</code>会将这个修改所涉及的，在初始化过程中收集到的一系列依赖进行<code>notify()</code>。</p>
+<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// /core/observer/index.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span>: <span class="function"><span class="keyword">function</span> <span class="title">reactiveSetter</span> <span class="params">(newVal)</span> </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  dep.notify()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里的<code>dep</code>是一个<code>Dep</code>实例，<code>dep.notify()</code>会对其对应的所有注册的<code>Watcher</code>实例（在最初parse时注册）逐一进行<code>update()</code>。</p>
+<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// /core/observer/dep.js</span></span><br><span class="line"></span><br><span class="line">Dep.prototype.notify = <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="comment">// stablize the subscriber list first</span></span><br><span class="line">  <span class="keyword">var</span> subs = <span class="keyword">this</span>.subs.slice()</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>, l = subs.length; i &lt; l; i++) &#123;</span><br><span class="line">    subs[i].update()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>Watcher.prototype.update()</code>会将自己添加到一个全局的batch queue里面：</p>
+<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// /core/observer/watcher.js</span></span><br><span class="line"></span><br><span class="line">Watcher.prototype.update = <span class="function"><span class="keyword">function</span> <span class="params">(shallow)</span> </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  pushWatcher(<span class="keyword">this</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后等待下一个tick的来临（批量更新机制）。</p>
+<p>当下一个tick来临时，会将batch queue里的每个<code>Watcher</code>实例都拿出来并且调用它的<code>run()</code></p>
+<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// /core/observer/watcher.js</span></span><br><span class="line"></span><br><span class="line">Watcher.prototype.run = function () &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="keyword">var</span> <span class="keyword">value</span> = <span class="keyword">this</span>.<span class="keyword">get</span>()</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">value</span> !== <span class="keyword">this</span>.<span class="keyword">value</span>) &#123;</span><br><span class="line">    <span class="comment">// set new value</span></span><br><span class="line">    <span class="keyword">var</span> oldValue = <span class="keyword">this</span>.<span class="keyword">value</span></span><br><span class="line">    <span class="keyword">this</span>.<span class="keyword">value</span> = <span class="keyword">value</span></span><br><span class="line">    <span class="keyword">this</span>.cb.call(<span class="keyword">this</span>.vm, <span class="keyword">value</span>, oldValue)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中的<code>this.get()</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// /core/observer/watcher.js</span></span><br><span class="line"></span><br><span class="line">Watcher.prototype.<span class="keyword">get</span> = function () &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="keyword">const</span> value = <span class="keyword">this</span>.getter.call(<span class="keyword">this</span>.vm, <span class="keyword">this</span>.vm)</span><br><span class="line">  <span class="keyword">return</span> value</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于vm实例而言，这里的<code>this.getter</code>绑定的是<code>vm._render</code>，它会调用<code>this.$options.render</code>，也就是在初始化时，模板编译所生产的v-dom函数。</p>
+<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// /core/instance/render.js</span></span><br><span class="line"></span><br><span class="line">Vue.prototype._render = <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="keyword">const</span> &#123; render, _renderChildren &#125; = <span class="keyword">this</span>.$options</span><br><span class="line">  <span class="keyword">const</span> vnode = render.call(<span class="keyword">this</span>._renderProxy)</span><br><span class="line">  <span class="keyword">return</span> vnode</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>于是这里，一个vm所关联的<code>Watcher</code>实例就通过<code>vm._render()</code>得到了一棵（更新后的）v-tree。</p>
+<p>回到<code>Watcher</code>里，<code>run()</code>当中，接下来就会调用<code>this.cb.call(this.vm, value, oldValue)</code>。上面已经看到<code>value</code>和<code>oldValue</code>分别是<code>this.vm</code>所对应的新、老v-tree。而这里的<code>this.cb</code>则绑定的是<code>vm._update</code>。</p>
+<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// /core/instance/lifecycle.js</span></span><br><span class="line"></span><br><span class="line">Vue.prototype._update = <span class="function"><span class="keyword">function</span> <span class="params">(vnode)</span> </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="keyword">this</span>.__patch__(<span class="keyword">this</span>._vnode, vnode)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，<code>vm._update</code>当中，调用了<code>Vue.prototype.__patch__</code>，那么这个函数又是从哪来的呢？</p>
+<p>答案在/entries/web-runtime.js、/platforms/web/runtime/node-ops.js、/core/vdom/patch.js等几个文件里。</p>
+<p>在程序启动的时候，xxx-runtime.js（比如web-runtime.js）会作为一个Provider，提供一系列dom操作，如熟悉的<code>createElement()</code>、<code>insertBefore()</code>等。把这些操作的具体实现（如web-runtime就是把它们直接落在原生DOM函数上）交给v-dom的<code>createPatchFunction()</code>。后者则会生成这个<code>__patch__</code>方法，糅合了通用的tree-diff逻辑，以及因runtime而异的dom操作实现。</p>
+<figure class="highlight elm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// /entries/web-runtime.js</span><br><span class="line"><span class="type">Vue</span>.proto<span class="keyword">type</span>.__patch__ = createPatchFunction(&#123; nodeOps, modules &#125;)</span><br></pre></td></tr></table></figure>
+<p>这个<code>__patch__</code>函数当中即包含了tree-diff过程又包含了patch过程，并且是在一遍里完成的，在<code>__patch__(oldVTree, newVTree)</code>被调用之后，<code>oldVTree</code>所关联的真实backend（在浏览器里，它就是DOM元素）已经被tree-diff算法所patch成newVTree所对应的样子。</p>
+<p>上述过程就完成了一次[属性更新 -&gt; UI自动更新]的过程。</p>
+<h2 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h2><p>优化过程主要是在模板编译阶段通过/compiler/optimizer.js实现的。</p>
+<p>主要的方法有两种：</p>
+<ul>
+<li>将元素的attributes中不会变化的那部分提取出来，在对比两个v-node的时候，直接跳过这部分字段。</li>
+<li>将v-tree中纯静态的sub-tree提取出来，在对比两棵v-tree的时候，直接跳过这棵子树。</li>
+</ul>
+<p>其中第二点，在遇到static sub-tree的时候，会命中<code>oldNode === newNode</code>的全等逻辑，可以直接跳过整棵子树。不过我发现一些小问题，一个是对于<code>&lt;button @click=&quot;count++&quot;&gt;喜+1&lt;/button&gt;</code>这种v-dom，我不太确定它应该被当做是纯静态的还是动态的，这个我还没想明白，暂时就先不说了，至少在目前的optimizer中，还是把它当动态的。另一个问题是对于模板中的各种HTML注释和换行所带来的一些空白的TextNode，明显应该是静态的，但却被当做了“动态”节点——之所以加引号是因为这部分节点的确是不会变，但没有提取成static node，所以每次<code>_render</code>的时候它还是会被render成一个新的v-node，这样就命中不了全等逻辑，然后对它再进行一次比较（尽管是代价非常低的一次比较）。（关于这个问题的例子可以看<a href="https://gist.github.com/LiuJi-Jim/e12b9df4c5bb5022cbe8f9308287e4e7" target="_blank" rel="noopener">这个Gist</a>）</p>
+<p>另一个问题是，如果使用服务端渲染，初始化会将v-dom直接<code>mount</code>到服务端输出的dom树上。但在客户端渲染的情况下，直接在浏览器里进行模板编译的话，首次输出会生成一个新的dom节点并<code>mount</code>到它上面，原版的那个用来当模板的dom节点则没用了。这是个浪费，但可以理解，第一是因为模板里有很多最后不会输出的节点（比如v-if/v-else中未命中的分支），另一个是到了生产环境下应该大多数人都会选择模板预编译吧。</p>
+<p>那么关于数据绑定的实现差不多就是这样了，后面有时间（不用掩饰了，肯定要坑）的话，再继续探索一下依赖追踪、<code>computed</code>属性的实现，以及更多内容（吧……</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

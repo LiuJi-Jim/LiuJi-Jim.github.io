@@ -1,0 +1,257 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>JavaScript中的异步梳理（2）——使用Promises/A | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="接上篇，这篇探讨使用CommonJS Promises/A来管理异步操作。
+写在前面：本人并没有系统深入研究过Promises模型，但以解决问题为目的进行了一些尝试，本文更多围绕自己的理解写，而非规范本身。
+Promises是一种异步编程模型，通过一组API来规范化异步操作，这样也能够让异步操作的流程控制更加容易。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="JavaScript中的异步梳理（2）——使用Promises/A">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2012-06-28T13:03:53.000Z"><a href="/2012/06/28/javascript中的异步梳理（2）-使用promisesa/">Jun 28 2012</a></time>
+      
+      
+  
+    <h1 class="title">JavaScript中的异步梳理（2）——使用Promises/A</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>接<a href="/2012/05/28/javascript中的异步梳理（1）-使用消息驱动/" title="JavaScript中的异步梳理（1）——使用消息驱动">上篇</a>，这篇探讨使用<strong>CommonJS Promises/A</strong>来管理异步操作。</p>
+<p>写在前面：本人并没有系统深入研究过Promises模型，但以解决问题为目的进行了一些尝试，本文更多围绕自己的理解写，而非规范本身。</p>
+<p><a href="http://wiki.commonjs.org/wiki/Promises" target="_blank" rel="noopener">Promises</a>是一种异步编程模型，通过一组API来规范化异步操作，这样也能够让异步操作的流程控制更加容易。<br><a id="more"></a></p>
+<p>这里谈的是Promises/A，算是Promises的一个分支吧，其实就是根据Promises模型定义了一组API。由于Promises对于新手而言理解曲线还是比较陡峭的，这里循序渐进的给大家介绍，同时实现一个最简单的Promises/A代码。</p>
+<p>Promises/A有个别名叫做“thenable”，就是“可以then”的。这里一个promise有三种状态：[默认、完成、失败]，初始创建的时候是默认状态，状态只可以从默认变成完成，或者默认变成失败。一旦完成或者失败，状态就不能再变。为了简化文章，这里我们先只考虑完成，不考虑失败。<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> <span class="built_in">Promise</span> = <span class="function"><span class="keyword">function</span>(<span class="params">ok</span>)</span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.state = <span class="string">'unfulfilled'</span>;</span><br><span class="line">    <span class="keyword">this</span>.ok =  || <span class="function"><span class="keyword">function</span>(<span class="params">obj</span>) </span>&#123; <span class="keyword">return</span> obj; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="built_in">Promise</span>.prototype = &#123;</span><br><span class="line">    resolve: <span class="function"><span class="keyword">function</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.state !== <span class="string">'unfulfilled'</span>) <span class="keyword">throw</span> <span class="string">'已完成，不能再次resolve'</span>;</span><br><span class="line">        <span class="keyword">this</span>.state = <span class="string">'fulfilled'</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">var</span> promise = <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="keyword">function</span>(<span class="params">obj</span>)</span>&#123; <span class="keyword">return</span> obj; &#125;);</span><br></pre></td></tr></table></figure></p>
+<p>构造函数中的<code>ok</code>是一个任务，<code>promise.resolve(obj)</code>表示将该promise的状态改为完成，此时<code>ok</code>会被执行，其返回值作为后续操作的参数以及<code>resolve</code>的返回值。<br>由于没有和任何异步操作关联在一起，这里的Promise还没有任何作用。</p>
+<p>Promises/A之所以叫“thenable”是因为它的核心API叫做<code>then</code>，望文生义这个方法的作用是当一个promise完成或失败后继续干别的事情。</p>
+<ul>
+<li><code>then</code>传入一个函数作为参数<code>nextOK</code>①，当该promise被<code>resolve</code>时，<code>resolve</code>的返回值将会传递到<code>nextOK</code>中。</li>
+<li><code>then</code>返回一个promise，当上述后续操作完成时，返回的promise也会被<code>resolve</code>。</li>
+<li>如果promise的状态是已完成，则<code>nextOK</code>会被立即调用。</li>
+</ul>
+<p>但是这样依然无法异步，因此这里有一个特殊情况，就是<strong>如果<code>nextOK</code>的返回值也是一个Promise，那么<code>then</code>返回的promise需要当这个promise被<code>resolve</code>时才会被<code>resolve</code>。</strong><br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> <span class="built_in">Promise</span> = <span class="function"><span class="keyword">function</span>(<span class="params">ok</span>)</span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.state = <span class="string">'unfulfilled'</span>;</span><br><span class="line">    <span class="keyword">this</span>.ok = ok || <span class="function"><span class="keyword">function</span>(<span class="params">obj</span>) </span>&#123; <span class="keyword">return</span> obj; &#125;;</span><br><span class="line">    <span class="keyword">this</span>.thens = [];</span><br><span class="line">&#125;;</span><br><span class="line"><span class="built_in">Promise</span>.prototype = &#123;</span><br><span class="line">    resolve: <span class="function"><span class="keyword">function</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.state != <span class="string">'unfulfilled'</span>) <span class="keyword">throw</span> <span class="string">'已完成，不能再次resolve'</span>;</span><br><span class="line">        <span class="keyword">this</span>.state = <span class="string">'fulfilled'</span>;</span><br><span class="line">        <span class="keyword">this</span>.result = <span class="keyword">this</span>.ok(obj); <span class="comment">// 执行ok</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">var</span> i=<span class="number">0</span>, len=<span class="keyword">this</span>.thens.length; i&lt;len; ++i)&#123;</span><br><span class="line">            <span class="comment">// 依次调用该任务的后续任务</span></span><br><span class="line">            <span class="keyword">var</span> then = <span class="keyword">this</span>.thens[i];</span><br><span class="line">            <span class="keyword">this</span>._fire(then.promise, then.ok);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">    &#125;,</span><br><span class="line">    _fire: <span class="function"><span class="keyword">function</span>(<span class="params">nextPromise, nextOK</span>)</span>&#123;</span><br><span class="line">        <span class="keyword">var</span> nextResult = nextOK(<span class="keyword">this</span>.result); <span class="comment">// 调用nextOK</span></span><br><span class="line">        <span class="keyword">if</span> (nextResult <span class="keyword">instanceof</span> <span class="built_in">Promise</span>)&#123;</span><br><span class="line">            <span class="comment">// 异步的情况，返回值是一个Promise，则当其resolve的时候，nextPromise才会被resolve</span></span><br><span class="line">            nextResult.then(<span class="function"><span class="keyword">function</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">                nextPromise.resolve(obj);</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="comment">// 同步的情况，返回值是普通结果，立即将nextPromise给resolve掉</span></span><br><span class="line">            nextPromise.resolve(nextResult);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> nextPromise;</span><br><span class="line">    &#125;,</span><br><span class="line">    _push: <span class="function"><span class="keyword">function</span>(<span class="params">nextPromise, nextOK</span>)</span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.thens.push(&#123;</span><br><span class="line">            promise: nextPromise,</span><br><span class="line">            ok: nextOK</span><br><span class="line">        &#125;);</span><br><span class="line">        <span class="keyword">return</span> nextPromise;</span><br><span class="line">    &#125;,</span><br><span class="line">    then: <span class="function"><span class="keyword">function</span>(<span class="params">nextOK</span>)</span>&#123;</span><br><span class="line">        <span class="keyword">var</span> promise = <span class="keyword">new</span> <span class="built_in">Promise</span>();</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.state == <span class="string">'fulfilled'</span>)&#123;</span><br><span class="line">            <span class="comment">// 如果当前状态是已完成，则nextOK会被立即调用</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>._fire(promise, nextOK);</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="comment">// 否则将会被加入队列中</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>._push(promise, nextOK);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>到到了这里，我们的极简版Promise就完成了，那么如何使用呢？<br>这里举个例子，首先定义一些“任务”，例如：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">print</span>(<span class="params">num</span>)</span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(num);</span><br><span class="line">    <span class="keyword">return</span> num;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">addTwo</span>(<span class="params">num</span>)</span>&#123;</span><br><span class="line">    <span class="keyword">return</span> num + <span class="number">2</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>按需要组织这些任务<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> promise = <span class="keyword">new</span> <span class="built_in">Promise</span>(print);</span><br><span class="line">promise.then(addTwo)</span><br><span class="line">       .then(print)</span><br><span class="line">       .then(addTwo)</span><br><span class="line">       .then(print); <span class="comment">// 这里的任务将会加入到队列中</span></span><br><span class="line">promise.resolve(<span class="number">3</span>); <span class="comment">// 激活整个队列</span></span><br></pre></td></tr></table></figure></p>
+<p>可以看到控制台里依次打印出了3、5和7。<br>但这些任务都是同步的，无法体现出Promise的强大之处——异步控制。这里我们通过<code>nextOK</code>返回promise的方法来实现一个<code>delay</code>。<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">delay</span>(<span class="params">ms</span>)</span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="function"><span class="keyword">function</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">        <span class="keyword">var</span> promise = <span class="keyword">new</span> <span class="built_in">Promise</span>();</span><br><span class="line">        setTimeout(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">            promise.resolve(obj);</span><br><span class="line">        &#125;, ms);</span><br><span class="line">        <span class="keyword">return</span> promise;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>利用它来改造上面的任务队列，让后两次打印之间延迟2秒：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> promise = <span class="keyword">new</span> <span class="built_in">Promise</span>(print);</span><br><span class="line">promise.then(addTwo)</span><br><span class="line">       .then(print)</span><br><span class="line">       .then(delay(<span class="number">2000</span>)) <span class="comment">// 延迟2秒</span></span><br><span class="line">       .then(addTwo)</span><br><span class="line">       .then(print);</span><br><span class="line">promise.resolve(<span class="number">3</span>);</span><br></pre></td></tr></table></figure></p>
+<p>利用这个原理，可以做一些巧妙的代码：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fibNext</span>(<span class="params">pair</span>)</span>&#123;</span><br><span class="line">    print(pair[<span class="number">0</span>]);</span><br><span class="line">    <span class="keyword">return</span> [pair[<span class="number">1</span>], pair[<span class="number">0</span>]+pair[<span class="number">1</span>]];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> promise = <span class="keyword">new</span> <span class="built_in">Promise</span>(fibNext);</span><br><span class="line">promise.then(<span class="function"><span class="keyword">function</span>(<span class="params">pair</span>)</span>&#123;</span><br><span class="line">    promise = promise.then(delay(<span class="number">1000</span>))</span><br><span class="line">                     .then(fibNext)</span><br><span class="line">                     .then(<span class="built_in">arguments</span>.callee);</span><br><span class="line">    <span class="keyword">return</span> pair;</span><br><span class="line">&#125;);</span><br><span class="line">promise.resolve([<span class="number">1</span>,<span class="number">1</span>]);</span><br></pre></td></tr></table></figure></p>
+<p>上面没有使用循环，但是实现了一个无限每隔1秒自动打印的斐波那契数列。</p>
+<p>Promises模型相当优雅，通过一些扩展可以实现诸如<code>when</code>, <code>whenAll</code>等API，对于封装异步操作非常有帮助。<br>事实上的库中不常直接用Promise这个名字，而常用<strong>Deferred</strong>，Defer的意思是“延迟”，因此Deferred常被成为“延迟队列”或者“异步队列”。在jQuery 1.5中引入了jQuery.Deferred，Dojo在这方面也是先行者，dojo 0.3就实现了Deferred。事实上在使用了Deferred之后，<code>jQuery.ajax</code>和<code>dojo.ajax</code>返回的结果都是Deferred，因此可以用<code>then</code>取代传统的传入回调函数的形式，非常方便，例如在dojo中可以：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">dojo.xhrGet(&#123; </span><br><span class="line">    url: <span class="string">"users.json"</span>, </span><br><span class="line">    handleAs: <span class="string">"json"</span> </span><br><span class="line">&#125;).then(<span class="function"><span class="keyword">function</span>(<span class="params">userList</span>)</span>&#123; </span><br><span class="line">    dojo.forEach(userList, <span class="function"><span class="keyword">function</span>(<span class="params">user</span>)</span>&#123;</span><br><span class="line">        appendUser(user);</span><br><span class="line">    &#125;); </span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<p>使用这样的代码可以随时对ajax请求添加回调，而不一定是在定义之初设定回调，灵活性更强。<br>而“设定一系列函数，在合适的时候调用它们；在此之后加入的函数将会被立即调用”这样的特性简直天生就和domReady是一对，实际上jQuery也使用Deferred重构了<code>$.ready</code>。<br>与此同时，借助Deferred实现动画这样的连续、并行的异步任务也非常优雅。</p>
+<p>通过Promises模型，把异步操作都理解为异步“任务”，以任务为单位来组织调度异步操作，实际上已经有那么点函数式的味道了。<br>下一篇文章，也是这个系列的最后一篇，将介绍另一种更加函数式的JavaScript异步操作组织方法。</p>
+<p>①事实上Promises/A的定义要复杂的多，包括失败<code>reject</code>等等，本文不细做阐述。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

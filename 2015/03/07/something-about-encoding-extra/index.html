@@ -1,0 +1,273 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>编码歪传——番外篇 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="我保证这是最后一篇了，而且这次的内容绝对都是很具体的，具体得连每篇博客开头例行的摘要我都不知道该写什么了！">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="编码歪传——番外篇">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-03-07T13:23:12.000Z"><a href="/2015/03/07/something-about-encoding-extra/">Mar 7 2015</a></time>
+      
+      
+  
+    <h1 class="title">编码歪传——番外篇</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>我保证这是最后一篇了，而且这次的内容绝对都是很具体的，具体得连每篇博客开头例行的摘要我都不知道该写什么了！</p>
+<a id="more"></a>
+<h2 id="典型乱码"><a href="#典型乱码" class="headerlink" title="典型乱码"></a>典型乱码</h2><h3 id="乱码、问号、方块"><a href="#乱码、问号、方块" class="headerlink" title="乱码、问号、方块"></a>乱码、问号、方块</h3><p>用文本编辑器打开一个文件，如果编码不兼容，有时候会看到<code>??????</code>的东西，有时候会看到一团乱七八糟的文字，通常我们就统称乱码了。怎么用编码的知识来理解呢？</p>
+<p>前文中我们有说到实用的很多编码方式都用的是变长字节编码，很多字节都要结合它的上下文去解释才是对的。例如：用UTF-8的算法去解析GBK的文件，就很容易发些这么些种情况：</p>
+<ol>
+<li>一个字节序列并不是合法的UTF-8字符，比如以<code>11111110</code>开头的字节序列。</li>
+<li>一个字节序列碰巧符合UTF-8规则。</li>
+</ol>
+<p>反过来看，用GBK的算法去解析UTF-8的文件其实也差不多，遇到第一种情况在显示的时候可能就用问号代替，而遇到第二种情况就是出现一些风马牛不相及的杂乱文字。</p>
+<p>方块其实和问号本质上一样的，但方块在现代浏览器里还有个很常见的情况，就是一个字符的编号在字体当中并没有定义，于是在排版和渲染的适合“智能”地用一个方块来表示它了。看到方块可以结合上下文，如果上下文当中的非英字符显示正确的，那么方块可能是一些特殊符号，比如Emoji。</p>
+<p>在写服务端程序的时候要小心处理“半个字符”的问题，例如我们在前级对超长的数据进行截断处理，刚好截断掉一个变长编码的字节序列，就会出现“半个字符”。一般半个字符都是铁定会乱码，一些容错比较差的程序甚至会挂，比如一些做的不好的PHP的C扩展，严重的时候会出core。所以程序不懂编码就别瞎截，甚至考虑到某些语言文字里的组合字符，就是知道编码也别瞎截（真是细思恐极）；</p>
+<h3 id="BOM"><a href="#BOM" class="headerlink" title="BOM"></a>BOM</h3><p><del>BOM就是Browser Object Model浏览器对象模型，</del>不好意思拿错剧本了。</p>
+<p>BOM（Byte-Order Mark，字节序标记）是Unicode码点<code>U+FEFF</code>。它被定义来放在一个UTF-16文件的开头，如果字节序列是<code>FEFF</code>那么这个文件就是大端序，如果字节序列是<code>FFFE</code>那么这个文件就是小端序。</p>
+<p>UTF-8本身是没有字节序的问题的（因为它是以单个字节为最小单位），但是Windows里面很多编辑器（比如记事本）会多此一举的在UTF-8文件开头加入<code>EF BB FF</code>也就是<code>U+FEFF</code>的UTF-8编码。</p>
+<p>如果你的PHP文件里面有一个这东西你就倒了大霉了，可能会：</p>
+<ul>
+<li>什么也看不见，可能是PHP引擎根本处理不了这个源代码。</li>
+<li>页面展现错乱的情况，一般是因为在<code>&lt;doctype&gt;</code>之前输出的非空格内容造成了浏览器选择错误的doctype。</li>
+<li>页面上面有及格乱七八糟的字符，浏览器把它当字符展示出来了。</li>
+</ul>
+<p>于是建议在Windows上做开发的同学，一定要选择“使用UTF-8无BOM格式”保存，<del>所以用记事本写代码装X就不好使了，</del>用Notepad++的可以注意选一下，它支持的文件编码格式挺丰富的，用一些比较先进的跨平台编辑器比如WebStorm、SublimeText它们都是没BOM的。</p>
+<h3 id="锟斤拷"><a href="#锟斤拷" class="headerlink" title="锟斤拷"></a>锟斤拷</h3><p>乱码之所以叫乱码，就是因为它是“乱”的。但是乱码当中最出名的就是“锟斤拷”，他出现次数太多了以至于看起来根本就没那么“乱”。这就纳了闷了，为什么全中国的网站乱码里面都会有这个？</p>
+<p>原因是，在将一些国家语言编码体系，比如GB、BIG-5、EUC-JP等，转换为Unicode的过程中，多少有一些字符是不在Unicode中的（比如一些偏旁部首在Unicode里是后来才收录的），甚至它本身在原来的编码体系里面就是非法字符的情况。</p>
+<p>Unicode规定了<code>U+FFFD</code>当作一个占位符用来表示这些字符，用UTF-8编码它就是<code>EF BF BD</code>，连续多个这样的字节序列出现就成了<code>EF BF BD EF BF BD</code>。如果是一个UTF-8的解析程序还好，而如果用一个GB的解析程序去打开，一个汉字2字节，就成了“锟斤拷”。<a href="/uploads/2015/kunjinkao.txt">这里</a>就是一个例子，用UTF-8编码打开是问号，用GBK编码打开的话就会看到锟斤拷，用hexdump或者UltraEdit这类任何16进制编辑器看的话就能看到里面都是<code>EF BF BD</code>。</p>
+<p>要避免锟斤拷一个重要的点就是尽量减少程序当中的编码转换。比如输入是UTF-8，但是一个旧的模块是GBK，把UTF-8转成GBK交给旧的模块处理，处理过程中旧模块多多少少有些BUG的可能，再转回来的时候就容易锟斤拷了。一个项目的源代码在团队里面被不同的人（他们编辑器配置不尽相同）开来开去，存来存去，也很容易出现锟斤拷。</p>
+<h3 id="烫烫烫、屯屯屯"><a href="#烫烫烫、屯屯屯" class="headerlink" title="烫烫烫、屯屯屯"></a>烫烫烫、屯屯屯</h3><p>这个和编码转换其实没啥关系，在VC的DEBUG模式下，会把未初始化的栈内存全部填成<code>0xCC</code>，未初始化的堆内存填成<code>0xCD</code>，这样做是让你一眼就能看出来你开了内存没初始化。</p>
+<p>而用GBK编码的话，<code>CC CC</code>就是“烫”，<code>CD CD</code>就是“屯”。</p>
+<h2 id="URL-Encode和Base64"><a href="#URL-Encode和Base64" class="headerlink" title="URL Encode和Base64"></a>URL Encode和Base64</h2><h3 id="URL-Encode"><a href="#URL-Encode" class="headerlink" title="URL Encode"></a>URL Encode</h3><p>URL Encode又称为“百分号编码”它主要用来在URI里面将特殊字符进行转义，因为像<code>/</code>、<code>&amp;</code>、<code>=</code>等等这类字符在URI里面本身是有功能性的。</p>
+<p>对于ASCII字符的编码很简单就是用<code>%</code>后跟ASCII编码的16进制表示，例如<code>/</code>的ASCII char code是<code>47</code>，16进制表示是<code>2F</code>，于是它的URL Encode结果就是<code>%2F</code>。</p>
+<p>对于非ASCII字符，将它的每个字节进行相同规则的转换，例如中文“编码”的Unicode char code是<code>U+7F16 7801</code>，UTF-8编码的字节序列是<code>E7 BC 96 E7 A0 81</code>，所以它按照UTF-8编码的URL Encode结果就是<code>%E7%BC%96%E7%A0%81</code>。</p>
+<p>可以看出，URL Encode编码非ASCII字符的时候，结果与使用的字符编码有关。因此在页面上提交表单、发起Ajax请求等操作的时候需要注意编码。浏览器会按照当前页面所使用的字符编码对表单体提交进行URL Encode，但使用JavaScript的<code>encodeURI</code>和<code>encodeURIComponent</code>的时候则总是会使用UTF-8（<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent" target="_blank" rel="noopener">参考MDN</a>）。</p>
+<p>表单提交的时候编码是非常非常重要的，一旦错了服务端解开数据的时候就会跪。比如Github在它们的搜索表单里面放了一个<code>&lt;input name=&quot;utf8&quot; type=&quot;hidden&quot; value=&quot;✓&quot;&gt;</code>，其中那个对钩&#x2713;是<code>U+2713</code>，UTF-8编码是<code>E2 9C 93</code>，他们可以在服务端检测这个参数的值对不对从而对URL里用的编码进行一个初步检测。虽然我没有看到他们使用其他编码的情况，不过这样也算是一个编码协商和Check的手段吧。</p>
+<p>在JavaScript中使用<code>escape</code>也可以达到URL Encode的效果，但是它对于非ASCII字符使用了一种非标准的的实现，例如“编码”会被<code>escape</code>成<code>%u7F16%u7801</code>这种<code>%uxxxx</code>奇怪的表示，W3C把这个函数废弃了，身为一名前端还用是打脸的哦。</p>
+<h3 id="Base64"><a href="#Base64" class="headerlink" title="Base64"></a>Base64</h3><p>Base64是一种<strong>用可见字符表示二进制数据</strong>的方法。它用了64个可见字符<code>[A-Za-z0-9+/]</code>。</p>
+<p>Base64的编码程序非常简单，由于64=2^6，6和8的最小公倍数是24，也就是3byte，因此对输入数据以3byte为一个单位，查表把它转换成4个可见字符。</p>
+<p>如果输入末尾不足3byte，那就补足，补1个byte就在输出末尾添加一个<code>=</code>，补2个byte同理。</p>
+<p>Base64经常用来在一些文本协议里面保存二进制数据，比如HTTP协议，或者电子邮件的附件啊什么的。同时因为它的输出对于人类而言不可读，可以起到一些“混淆加密”的作用，事实上就有修改64个字符的排布来做一个变形Base64实现一个简单加密算法的例子。从密码学的角度看它基本上没什么强度可言，但是足够简单，可以起到防君子不防小人的作用。</p>
+<p>由于一个字符只能编码6bit，自身却占了8bit，8/6=1.33，因此使用Base64来表示数据的时候会浪费1/3的体积。对于在CSS里面用Base64的data-url方式表示图片，用之前不妨简单估算一下，膨胀的体积和一个HTTP请求头比起来会相差多少，说不定涨太多了已经损失掉省一个请求的收益了。</p>
+<h2 id="尾声"><a href="#尾声" class="headerlink" title="尾声"></a>尾声</h2><p>终于整个系列都要结束了，理论的也好，实用的也好，基本上我觉得该说的都说了，要是以后再遇到乱码，一定会很快知道问题所在。</p>
+<p>最后还是要佩服并感谢一下ISO和Unicode联盟，做了这么伟大的事情将全世界的语言文字统一收录和编码，而这当中包括了那么多我们根本没听说过的奇怪的语言文字。正是因为他们的努力奠定了互联网是一个无国界的世界，每天我们都能通过它获得来自任何地方任何语言的信息。</p>
+<p>哦，我上面说的不是某国的互联网。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

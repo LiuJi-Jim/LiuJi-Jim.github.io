@@ -1,0 +1,263 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>使用C#开发桌面hybrid应用程序 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="周末和基友一起开发了一个程序MP3CutAd（github），用的是C#做容器和“后端”，webkit做UI。
+因为后端的算法是用C#写的，就打算不迁移了，用C#做UI吧。但是我特么不会，距离上一次开发WinForm程序已经过去了5、6年；WPF也没有实践经验。所以就想弄个办法，用C#做后端，web做前端，赶个时髦。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="使用C#开发桌面hybrid应用程序">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-11-09T15:33:33.000Z"><a href="/2015/11/09/developing-webapp-with-csharp/">Nov 9 2015</a></time>
+      
+      
+  
+    <h1 class="title">使用C#开发桌面hybrid应用程序</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>周末和基友一起开发了一个程序<a href="http://www.zhihu.com/question/22913899/answer/71352036" target="_blank" rel="noopener">MP3CutAd</a>（<a href="https://github.com/licstar/MP3CutAd" target="_blank" rel="noopener">github</a>），用的是C#做容器和“后端”，webkit做UI。</p>
+<p>因为后端的算法是用C#写的，就打算不迁移了，用C#做UI吧。但是我特么不会，距离上一次开发WinForm程序已经过去了5、6年；WPF也没有实践经验。所以就想弄个办法，用C#做后端，web做前端，赶个时髦。</p>
+<a id="more"></a>
+<p>首先想到的是用<a href="http://www.zhihu.com/question/22913899/answer/71352036" target="_blank" rel="noopener">Electron</a>，这是一个nodejs和chromium的绑定。</p>
+<p>为了让nodejs可以调用.NET类库，需要<a href="https://github.com/tjanczuk/edge" target="_blank" rel="noopener">edge.js</a>。不过在我兴冲冲的把两者装好之后，在Electron里面<code>require(&#39;edge&#39;)</code>却报错了。</p>
+<p>懒的境界是：懒得调，先看看别的方案。</p>
+<p>这次用<a href="https://github.com/cefsharp/CefSharp" target="_blank" rel="noopener">CefSharp</a>做容器，这是CEF（Chromium Embeded Framework）的C#版，在GitHub的Windows客户端里也用了这个项目。它提供了DEMO项目，下载下来用Visual Studio直接就能编译运行了。然后很快也实现了用C#向JS暴露对象，它提供两种，一种是暴露同步接口的，一种是JS返回值自动包装成Promise的异步接口的。我最后使用的是同步返回+callback的土鳖风格。</p>
+<p>先这么定了，就用这个方案吧。</p>
+<p>主要的缺点有以下几个：</p>
+<ul>
+<li>JS绑定目前实现得比较弱，函数参数只能传简单数据类型，连数组都不行。我弄了半天才发现，暂时用JSON来传参了。</li>
+<li>不能向JS端暴露类的构造函数，可以取而代之暴露一个工厂，因为反正都只能传递简单类型。但是这样要实现状态就会很麻烦，所以C#端只能尽可能做成无状态的。</li>
+<li>有时候窗口退出以后，cef的Chroumium进程退不干净，这个一直没排查到到底是哪里漏的，不过多半还是我自己弄得不好吧。</li>
+</ul>
+<p>优点呢：</p>
+<ul>
+<li>因为宿主是C#程序，可以充分利用各种窗体资源，天生系统窗口样式，需要做多窗口也可以。另外，可以肆无忌惮的在C#里开各种线程来跑算法。</li>
+<li>可以使用WinForm或者WPF实现主程序，这样能够获得Native UI的各种优势，比如性能。同时嵌入一个Chromium则可以当做嵌入浏览器，或者是一个需要远程更新的模块。</li>
+<li>可以实现同步的JS绑定接口（虽然我没用上）。</li>
+</ul>
+<p>既然只能传简单数据类型，那么使用JS绑定和使用HTTP服务有啥优势？反正都得用JSON了。应该说，还是有的，主要就是可以实现同步调用。但用HTTP服务的话，应该更容易mock一些，而且还能脱离宿主，直接在Chrome浏览器里开发，也许可以更提高开发效率。另外一个就是在宿主里起一个HTTP服务其实也挺蛋疼的，而且调用开销估计也会更大吧。</p>
+<p>另外还有一个方案是用<a href="https://github.com/nwjs/nw.js" target="_blank" rel="noopener">nw.js</a>也就是之前的node-webkit，配合edge.js。edge.js这个我没跑通，但是从它的介绍来看，要在C#端实现状态好像也没变简单。另一个是它如果暴露dll的话要按一定规则写接口，反正跟用CefSharp一样都是要封一层了……</p>
+<p>总之就是两个方向：</p>
+<p>1、用webkit/Chromium做宿主进程，绑定nodejs，再绑定.NET。<br>2、用C#做宿主进程，绑定Chromium。</p>
+<p>前者的话，代码主要用JS写，后者的话，JS和C#一半一半吧。</p>
+<p>跨平台能力方面，前者应该是更强的，因为edge.js的介绍里已经说了对Mono的支持。而Cef虽然是跨平台的，但是CefSharp目前还没发现他有说支持Mono。好在我对跨平台不感兴趣，而且这个程序当中又依赖了别的更不跨平台的东西了……不过除了CefSharp之外，还有别的项目也是Cef的C#绑定，其中有支持Mono的，我没试。</p>
+<p>具体到UI方面，我用的是<a href="https://github.com/vuejs/vue" target="_blank" rel="noopener">Vue</a>，配合官方提供的webpack插件vue-loader和webpack-dev-server可以实现模块热更新，这样我就不需要频繁重启宿主程序了，还是很方便。</p>
+<p>在联合调试的时候，C#端可以注意一下不要让算法跑在JS线程里面，这样Chromium那边的UI线程不会卡住。然后在Visual Studio里随便打断点就可以调试JS绑定和算法的C#代码，非常方便。</p>
+<p>体积方面，都差不多，CefSharp的发布包大概是40多MB，如果干掉一些诸如音视频、Dev Tools、GL支持这类的，应该还能小一些。Electron也是这个水平，毕竟里面还包含一个nodejs。nw.js还没试，估计也都差不多吧。</p>
+<p>结论：跨语言开发还是比较麻烦的，如果想用web做UI的话，建议尽量用nodejs绑定。如果需要用Native代码开发模块那就只能用C++写node包了，其实说到底还是挺坑的。不过用web开发UI的效率的确还是相当高，也许Electron和nw.js这种方案会越来越流行吧。而Cef方案则更倾向于在一个以Native UI为主的程序里面嵌入一个浏览器，或者一个比较需要远程更新的子模块这类的。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

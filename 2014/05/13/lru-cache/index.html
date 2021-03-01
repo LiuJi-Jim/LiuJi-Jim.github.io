@@ -1,0 +1,243 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>LRU缓存置换算法 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="这篇文章是科普性质的，外加推销一下中文注释……
+LRU(Least Recently Used, 近期最少使用)算法是缓存置换算法当中的经典案例——这个中文翻译听起来相当莫名其妙，所以我们还是叫LRU吧。虽然我们现在常常都用了更高阶的缓存服务，但如果要在一些语言（比如JS）当中自己实现一个简单的K-V的缓存类的时候，不放试试写一个LRU，因为它的算法思路真的相当简单，但实现起来又是非常有趣。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="LRU缓存置换算法">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2014-05-13T11:23:12.000Z"><a href="/2014/05/13/lru-cache/">May 13 2014</a></time>
+      
+      
+  
+    <h1 class="title">LRU缓存置换算法</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p><strong>这篇文章是科普性质的，外加推销一下中文注释……</strong></p>
+<p>LRU(Least Recently Used, 近期最少使用)算法是缓存置换算法当中的经典案例——这个中文翻译听起来相当莫名其妙，所以我们还是叫LRU吧。虽然我们现在常常都用了更高阶的缓存服务，但如果要在一些语言（比如JS）当中自己实现一个简单的K-V的缓存类的时候，不放试试写一个LRU，因为它的算法思路真的相当简单，但实现起来又是非常有趣。</p>
+<a id="more"></a>
+<h3 id="为什么需要置换算法"><a href="#为什么需要置换算法" class="headerlink" title="为什么需要置换算法"></a>为什么需要置换算法</h3><p>实现一个K-V cache的类，我们需要什么API？精简下来，我认为说到底就3个吧：<br><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">get</span><span class="params">(key)</span></span></span><br><span class="line"><span class="function"><span class="title">set</span><span class="params">(key, value)</span></span></span><br><span class="line"><span class="function"><span class="title">del</span><span class="params">(key)</span></span></span><br></pre></td></tr></table></figure></p>
+<p>这看起来就是一个字典而已，和LRU没什么关系。问题就在于缓存的空间是有限的，要么是硬件受限，要么是我们不想给这么多内存。所以当空间满的时候，再添加新的缓存，需要置换出去旧的。置换哪个出去就是门学问了。</p>
+<p>最容易的比如FIFO，先进先出，其他还有很多，这里不详细介绍了，可以去翻翻计算机组成原理看看。</p>
+<h3 id="LRU置换算法介绍"><a href="#LRU置换算法介绍" class="headerlink" title="LRU置换算法介绍"></a>LRU置换算法介绍</h3><p>其实思路很简单，就是“把最近没用过的一个置换出去”。<br>实现上，可以描述为一个双端的列表，表头是最近用过的，而表尾是最近没用过的。<br><figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>时，如果缓存在列表里，把它摘出来放在表头上，否则直接放在表头上。</span><br><span class="line"><span class="keyword">get</span>时，把它摘出来放在表头上。</span><br><span class="line">del时，把它摘出来释放掉，如果它是表尾，那么维护一下新的表尾。</span><br><span class="line">置换时，换出表尾释放掉。</span><br></pre></td></tr></table></figure></p>
+<p>很明显用一个双端队列可以比较容易地实现上述算法，主要的问题是：用双链表构造的双端队列，因为不能随机访问，在按key查找时，需要<code>O(n)</code>的时间查找。（根据局部性原理，从队头查找会更容易快速找到目标，这是一个优化点。）</p>
+<h3 id="JS实现"><a href="#JS实现" class="headerlink" title="JS实现"></a>JS实现</h3><p>isaacs大神（npm以及node.js的主要作者）的<a href="https://github.com/isaacs/node-lru-cache" target="_blank" rel="noopener">node-lru-cache</a>里用的是hash表加上队头和队尾两个索引来替代双链表。这样可以获得分摊<code>O(1)</code>时间的查找，构造比较巧妙。</p>
+<p>我把它的源代码加了中文注释，还算比较详细吧，有兴趣的童鞋可以去看看。<a href="https://github.com/LiuJi-Jim/node-lru-cache" target="_blank" rel="noopener">github</a></p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

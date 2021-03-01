@@ -1,0 +1,290 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>ES6 generator函数与co再一瞥 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="离上文《ES6 generator函数与co一瞥》已经过去了两个月，真是惭愧，赶紧补完。
+本文将会介绍ES6中的generator/yield的异常处理，以及分析并实现一个简单的、只支持Promise的co，嗯我们这里山寨的叫做cool。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="ES6 generator函数与co再一瞥">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-01-18T10:31:35.000Z"><a href="/2015/01/18/more-about-es6-generator-function/">Jan 18 2015</a></time>
+      
+      
+  
+    <h1 class="title">ES6 generator函数与co再一瞥</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>离上文<a href="/2014/11/28/a-brief-look-at-es6-generator-function/">《ES6 generator函数与co一瞥》</a>已经过去了两个月，真是惭愧，赶紧补完。</p>
+<p>本文将会介绍ES6中的<code>generator/yield</code>的异常处理，以及分析并实现一个简单的、只支持Promise的<a href="https://github.com/tj/co" target="_blank" rel="noopener">co</a>，嗯我们这里山寨的叫做<code>cool</code>。</p>
+<a id="more"></a>
+<h2 id="异常处理"><a href="#异常处理" class="headerlink" title="异常处理"></a>异常处理</h2><p>这里我们分两种情况来看，一种是在<code>generator function</code>当中发生的异常，一种是在迭代中发生的异常。</p>
+<h3 id="在generator-function中发生的异常"><a href="#在generator-function中发生的异常" class="headerlink" title="在generator function中发生的异常"></a>在generator function中发生的异常</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span>* <span class="title">boring</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">yield</span> <span class="string">'one'</span>;</span><br><span class="line">  <span class="keyword">throw</span> <span class="string">'oops'</span>;</span><br><span class="line">  <span class="keyword">yield</span> <span class="string">'two'</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> gen = boring();</span><br><span class="line"><span class="keyword">var</span> iter = gen.next();</span><br><span class="line"><span class="keyword">while</span> (!iter.done) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(iter.value, iter.done);</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    iter = gen.next();</span><br><span class="line">  &#125; <span class="keyword">catch</span> (ex) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'exception happend while iterating:'</span>, ex);</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的代码只会输出<br><figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">one <span class="literal">false</span></span><br><span class="line"><span class="keyword">exception</span> happend <span class="keyword">while</span> iterating: oops</span><br></pre></td></tr></table></figure></p>
+<p>因为在继续第二个<code>next()</code>的时候，发生了异常，这个异常导致迭代终止了。</p>
+<h3 id="在迭代中发生的异常"><a href="#在迭代中发生的异常" class="headerlink" title="在迭代中发生的异常"></a>在迭代中发生的异常</h3><p>通过<code>gen.throw()</code>可以把异常抛到<code>generator function</code>里面去，它会作为“整个<code>yield</code>表达式的异常”，然后迭代将会继续。<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span>* <span class="title">boring</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">yield</span> <span class="string">'one'</span>;</span><br><span class="line">  &#125; <span class="keyword">catch</span> (ex) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'exception caught inside:'</span>, ex);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">yield</span> <span class="string">'two'</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> gen = boring();</span><br><span class="line"><span class="keyword">var</span> iter = gen.next();</span><br><span class="line"><span class="keyword">while</span> (!iter.done) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(iter.value, iter.done);</span><br><span class="line">  <span class="keyword">if</span> (iter.value === <span class="string">'one'</span>) &#123;</span><br><span class="line">    iter = gen.throw(<span class="string">'shut up'</span>); <span class="comment">// 强行异常，无情无义无理取闹</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    iter = gen.next();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>将会输出<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">one</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">exception caught inside:</span> <span class="string">shut</span> <span class="string">up</span></span><br><span class="line"><span class="string">two</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure></p>
+<p>当然，如果<code>generator function</code>内部没有捕获这个异常，最终它还是会被抛到外界来，回到上文的情况1。</p>
+<h3 id="用于将异步的错误处理同步化"><a href="#用于将异步的错误处理同步化" class="headerlink" title="用于将异步的错误处理同步化"></a>用于将异步的错误处理同步化</h3><p>结合上面两个特性，我们可以将<code>yield</code>表达式当中的异步操作中的错误处理进行“同步化”，我们知道异步操作最恶心的地方就是错误处理，例如thunk风格的错误处理<br><figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">fs.readFile(path, <span class="function"><span class="keyword">function</span><span class="params">(err, data)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (!err) &#123;</span><br><span class="line">    <span class="comment">// 正常</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 异常</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<p>或者Promise风格的错误处理<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$.getJSON(url).then(<span class="function"><span class="keyword">function</span>(<span class="params">data</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 正常</span></span><br><span class="line">&#125;, <span class="function"><span class="keyword">function</span>(<span class="params">err</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 异常</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<p>很容易把程序逻辑扯得支离破碎。而同步的错误处理就容易得多，可以直接用JS的结构化异常处理<code>try/catch/finally</code>。<br>于是我们可以扩展上一篇文章当中的<code>async</code>函数（本文将改名叫<code>cool</code>），让它对于<code>yield</code>表达式中的异步操作也可以进行错误处理，并且将错误通过<code>gen.throw</code>抛回<code>generator function</code>内，从而内部就可以使用<code>try/catch</code>来处理异常了。</p>
+<h2 id="动手实现一个co"><a href="#动手实现一个co" class="headerlink" title="动手实现一个co"></a>动手实现一个co</h2><p>为了简化代码，我们先去掉对<code>yield</code>一个thunk的支持，只留下对于<code>Promise</code>和<code>generator</code>的支持，并且最终也把这组“同步化”之后的异步操作返回为一个Promise。</p>
+<h3 id="核心"><a href="#核心" class="headerlink" title="核心"></a>核心</h3><p>回顾一下前作当中的<code>async</code>函数，它已经做到了</p>
+<ul>
+<li><code>yield</code>一个thunk函数</li>
+<li><code>yield</code>一个普通值</li>
+<li>完成迭代</li>
+</ul>
+<p>这次我们先把thunk函数换成Promise的风格，然后还差的是</p>
+<ul>
+<li>通过<code>gen.throw()</code>将Promise的错误抛到<code>generator function</code>内</li>
+<li>让<code>cool</code>返回一个Promise</li>
+<li>对于<code>generator function</code>没能处理的异常，将其转化成Promise风格的错误处理<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">cool</span>(<span class="params">gen</span>)</span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="keyword">function</span>(<span class="params">resolve, reject</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> iter = gen();</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">onResolve</span>(<span class="params">data</span>) </span>&#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">var</span> it = iter.next(data); <span class="comment">// 进行一步迭代</span></span><br><span class="line">        step(it);</span><br><span class="line">      &#125; <span class="keyword">catch</span> (ex) &#123;</span><br><span class="line">        reject(ex); <span class="comment">// 捕获到generator function内的异常，终止迭代</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">onReject</span>(<span class="params">err</span>) </span>&#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">var</span> it = iter.throw(err);</span><br><span class="line">        <span class="comment">// 将yield表达式中的异步操作的错误抛进generator function，并继续迭代</span></span><br><span class="line">        step(it);</span><br><span class="line">      &#125; <span class="keyword">catch</span> (ex) &#123;</span><br><span class="line">        reject(ex); <span class="comment">// generator function没有妥善处理异常，终止迭代</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">step</span>(<span class="params">it</span>) </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (it.done) &#123;</span><br><span class="line">        <span class="comment">// 迭代已完成</span></span><br><span class="line">        resolve(it.value);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">var</span> value = it.value;</span><br><span class="line">      <span class="keyword">if</span> (<span class="keyword">typeof</span> value.then === <span class="string">'function'</span>) &#123;</span><br><span class="line">        <span class="comment">// 收到的是一个Promise</span></span><br><span class="line">        value.then(onResolve, onReject);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 收到的是一个值</span></span><br><span class="line">        onResolve(value);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    onResolve(); <span class="comment">// 开始迭代</span></span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>上面的代码和<a href="mailto:co@4.0" target="_blank" rel="noopener">co@4.0</a>的核心代码几乎如出一辙，当然少了很多各种异步API格式的兼容，但是实际上<code>generator/yield</code>真的就是这么简单，很难写出什么花样来。</p>
+<p>现在我们的<code>cool</code>函数已经可以支持<code>try/catch</code>和<code>yield Promise</code>的用法了</p>
+<h3 id="试试看"><a href="#试试看" class="headerlink" title="试试看"></a>试试看</h3><p>先写一个名为<code>sleepRandom</code>的辅助函数<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">sleepRandom</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="keyword">function</span>(<span class="params">resolve</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> ms = <span class="built_in">Math</span>.floor(<span class="built_in">Math</span>.random() * <span class="number">500</span>);</span><br><span class="line">    setTimeout(resolve.bind(<span class="keyword">this</span>, ms), ms); <span class="comment">// Promise的返回值就是sleep的毫秒数</span></span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h4 id="顺序执行"><a href="#顺序执行" class="headerlink" title="顺序执行"></a>顺序执行</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> boringJob = cool(<span class="function"><span class="keyword">function</span>*(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="keyword">yield</span> <span class="string">'yield sync value'</span>);</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">var</span> i=<span class="number">0</span>; i&lt;<span class="number">5</span>; ++i) &#123;</span><br><span class="line">    <span class="keyword">var</span> ms = <span class="keyword">yield</span> sleepRandom();</span><br><span class="line">    <span class="built_in">console</span>.log(i, ms);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="string">'success'</span>;</span><br><span class="line">&#125;);</span><br><span class="line">boringJob.then(<span class="function"><span class="keyword">function</span>(<span class="params">data</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'finished:'</span>, data);</span><br><span class="line">&#125;, <span class="function"><span class="keyword">function</span>(<span class="params">err</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'failed:'</span>, err);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>输出<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">yield</span> <span class="string">sync</span> <span class="string">value</span></span><br><span class="line"><span class="number">0</span> <span class="number">47</span></span><br><span class="line"><span class="number">1</span> <span class="number">343</span></span><br><span class="line"><span class="number">2</span> <span class="number">40</span></span><br><span class="line"><span class="number">3</span> <span class="number">339</span></span><br><span class="line"><span class="number">4</span> <span class="number">423</span></span><br><span class="line"><span class="attr">finished:</span> <span class="string">success</span></span><br></pre></td></tr></table></figure></p>
+<p>这个例子中，<code>sleepRandom</code>本来是一个异步的操作，但是被我们的“语法糖”搞成同步的了，JS也能sleep了，你满足了吧……</p>
+<h4 id="未处理异常"><a href="#未处理异常" class="headerlink" title="未处理异常"></a>未处理异常</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bad</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="keyword">function</span>(<span class="params">resolve, reject</span>) </span>&#123;</span><br><span class="line">    setTimeout(reject.bind(<span class="keyword">this</span>, <span class="string">'breaking bad'</span>), <span class="number">200</span>);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> weakJob = cool(<span class="function"><span class="keyword">function</span>*(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="keyword">yield</span> <span class="string">'yield sync value'</span>);</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="keyword">yield</span> bad()); <span class="comment">// bad()被reject后，其错误将会作为`yield bad()`语句的异常抛出</span></span><br><span class="line">  <span class="built_in">console</span>.log(<span class="keyword">yield</span> sleepRandom());</span><br><span class="line">  <span class="keyword">return</span> <span class="string">'success'</span>;</span><br><span class="line">&#125;);</span><br><span class="line">weakJob.then(<span class="function"><span class="keyword">function</span>(<span class="params">data</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'finished:'</span>, data);</span><br><span class="line">&#125;, <span class="function"><span class="keyword">function</span>(<span class="params">err</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'failed:'</span>, err);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>输出<br><figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">yield </span>sync value</span><br><span class="line"><span class="symbol">failed</span>: <span class="keyword">breaking </span><span class="keyword">bad</span></span><br></pre></td></tr></table></figure></p>
+<p>因为<code>yield bad()</code>的异常没被处理，它就被抛出来了，一来造成迭代终止，二来造成了<code>weakJob</code>被<code>reject</code>。</p>
+<h4 id="用try-catch-fanally处理异步任务的异常"><a href="#用try-catch-fanally处理异步任务的异常" class="headerlink" title="用try/catch/fanally处理异步任务的异常"></a>用try/catch/fanally处理异步任务的异常</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> robustJob = cool(<span class="function"><span class="keyword">function</span>*(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="keyword">yield</span> <span class="string">'yield sync value'</span>);</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="keyword">yield</span> bad());</span><br><span class="line">  &#125; <span class="keyword">catch</span> (ex) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'caught exception:'</span>, ex); <span class="comment">// 异常被处理了，不会造成迭代终止</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="keyword">yield</span> sleepRandom());</span><br><span class="line">  <span class="keyword">return</span> <span class="string">'success'</span>;</span><br><span class="line">&#125;);</span><br><span class="line">robustJob.then(<span class="function"><span class="keyword">function</span>(<span class="params">data</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'finished:'</span>, data);</span><br><span class="line">&#125;, <span class="function"><span class="keyword">function</span>(<span class="params">err</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'failed:'</span>, err);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>输出<br><figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">yield </span>sync value</span><br><span class="line"><span class="symbol">caught</span> exception: <span class="keyword">breaking </span><span class="keyword">bad</span></span><br><span class="line"><span class="keyword">487</span></span><br><span class="line"><span class="keyword">finished: </span>success</span><br></pre></td></tr></table></figure></p>
+<p>这个例子中，虽然<code>bad</code>是一个异步操作，但是因为我们的<code>cool</code>函数把<code>Promise</code>的错误处理格式转换成了<code>try/catch</code>，所以可以用编写同步代码的方式来处理异常了，编程体验好多了。</p>
+<h3 id="补充"><a href="#补充" class="headerlink" title="补充"></a>补充</h3><p>然后我们再实现一个<code>yield</code>另一个<code>generator</code>的兼容，这个就很简单了。</p>
+<p>首先对<code>cool</code>的传入参数进行一下重构，使其可以兼容<code>generator</code>和<code>generator function</code>两种输入<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">cool</span>(<span class="params">gen</span>)</span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="keyword">function</span>(<span class="params">resolve, reject</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> iter = <span class="keyword">typeof</span> gen === <span class="string">'function'</span> ? gen() : gen;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">onResolve</span>(<span class="params">data</span>) </span>&#123;</span><br><span class="line">...</span><br></pre></td></tr></table></figure></p>
+<p>然后对<code>yield</code>内容是<code>generator</code>的情况也做一下兼容<br><figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">typeof</span> <span class="keyword">value</span>.then === <span class="string">'function'</span>) &#123;</span><br><span class="line">  <span class="comment">// 收到的是一个Promise</span></span><br><span class="line">  <span class="keyword">value</span>.then(onResolve, onReject);</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">typeof</span> <span class="keyword">value</span>.next === <span class="string">'function'</span> &amp;&amp; <span class="keyword">typeof</span> <span class="keyword">value</span>.<span class="keyword">throw</span> === <span class="string">'function'</span>) &#123;</span><br><span class="line">  <span class="comment">// 收到的是一个Generator，将其用cool包装为一个Promise然后继续</span></span><br><span class="line">  cool(<span class="keyword">value</span>).then(onResolve, onReject);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="comment">// 收到的是一个值</span></span><br><span class="line">  onResolve(<span class="keyword">value</span>);</span><br><span class="line">&#125;</span><br><span class="line">...</span><br></pre></td></tr></table></figure></p>
+<p>于是构建了一个还算凑合够用的“同步编程、异步执行”的体系<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span>* <span class="title">boring</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">var</span> i=<span class="number">0</span>; i&lt;<span class="number">5</span>; ++i) &#123;</span><br><span class="line">    <span class="keyword">var</span> ms = <span class="keyword">yield</span> sleepRandom();</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'boring'</span>, ms);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="string">'boring end'</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> boringJob = cool(<span class="function"><span class="keyword">function</span>*(<span class="params"></span>)</span>&#123;</span><br><span class="line">  <span class="keyword">var</span> boringResult = <span class="keyword">yield</span> boring(); <span class="comment">// 一个generator function里可以yield另一个generator</span></span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'boring result:'</span>, boringResult);</span><br><span class="line">  <span class="keyword">return</span> <span class="string">'success'</span>;</span><br><span class="line">&#125;);</span><br><span class="line">boringJob.then(<span class="function"><span class="keyword">function</span>(<span class="params">data</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'finished:'</span>, data);</span><br><span class="line">&#125;, <span class="function"><span class="keyword">function</span>(<span class="params">err</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'failed:'</span>, err);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<p>上面的例子可以看做我们把来自系统或其他库的基于callback也好，Promise也好，反正是异步操作，先封装成<code>Promise</code>，然后在我们的应用程序代码里，使用<code>cool</code>，或者<code>co</code>来实现“同步代码”，当然事实上这些代码执行的时候都还是异步的，我们只是实现了一个同步的语义。</p>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><h3 id="并行任务"><a href="#并行任务" class="headerlink" title="并行任务"></a>并行任务</h3><p>JS是单线程的，因此但就JS本身而言很难说真正的“并行任务”，但是runtime是多线程的，因此我们可以充分利用这一点，比如同时开多个Ajax请求，同时开多个<code>fs.readFile</code>等等。</p>
+<p>这本身不是难事，难的是当遇到类似“当a, b, c三个请求都完成时，渲染界面”这种需要控制异步流程的地方，使用<code>async.js</code>这类的工具可以帮助我们做这种操作，使用<code>Promise.all</code>也可以实现这样的语义。事到如今，JS社区对于用<code>async.js</code>、<code>then.js</code>还是<code>Promise</code>，甚至是ES6的Promise还是重新实现的Promise，还讨论的喋喋不休，乐此不疲，足见异步语义对于程序员的负担是很大的。</p>
+<p>在co中，<code>yield</code>一个数组的时候，它会把这个数组中的每一项都当做<code>Promise</code>，然后用<code>Promise.all</code>来让他们并发地执行。而如果<code>yield</code>的是一个Plain Object，它会遍历这个对象所有key，将其进行“Promise化”。听起来比较复杂，不过其实也就一二十行代码的事情，有兴趣的同学自己去看看co的代码就OK了。</p>
+<p>这样的话在使用co的时候，如果<code>yield</code>一个数组或者一个Plain Object，它会对数组或者对象里的各项并发地执行，当它们全部都完成的时候一次性完成<code>yield</code>，依然可以用同步的语义实现并发，例如<br><figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">var results = <span class="keyword">yield</span> [$.ajax(url1), $.ajax(url2), $.ajax(url3)];</span><br><span class="line">/<span class="regexp">/ 全部完成后，yield才会完成，返回值是三个ajax的结果所组成的数组</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="调用栈"><a href="#调用栈" class="headerlink" title="调用栈"></a>调用栈</h3><p>前阵子有爆料co在某些情况下会出现Maximum call stack size exceeded的情况（<a href="https://gist.github.com/zensh/797feb9ae72eac901021" target="_blank" rel="noopener">例子</a>），其实非常符合预期并且好理解，这是因为用同步语义写的循环<code>yield</code>代码将会被变换成函数调用，一不小心就会造成非常长的Call Stack。解决的办法也比较容易，那就是<strong>不要yield同步函数</strong>。</p>
+<p>在我们这个例子里没这个问题，因为我们用的是ES6的Promise，它是严格异步的。而co支持yield一个thunk，thunk虽然是callback语义，但是没有任何担保它是异步的，也就是说thunk有“同步callback”和“异步callback”之分，这就是I神所谓<a href="http://blog.izs.me/post/59142742143/designing-apis-for-asynchrony" target="_blank" rel="noopener">“Release Zalgo”</a>的问题，有兴趣可以继续探讨下。</p>
+<h3 id="支持程度"><a href="#支持程度" class="headerlink" title="支持程度"></a>支持程度</h3><p>JS最让人恶心的地方就是有了新特性你不知道敢不敢用，因为不知道<code>generator/yield</code>支持程度怎么样。</p>
+<ul>
+<li>在node.js &gt;= 0.11的版本中通过<code>--harmony</code>或<code>--harmony-generator</code>参数可以开启支持。</li>
+<li>在io.js &gt;= 1.0中已经相当于默认开启了这个支持。</li>
+<li>在Chrome较高版本中通过<code>chrome:flags</code>中的“启用实验性 JavaScript”可以开启支持。</li>
+<li>通过<a href="https://github.com/facebook/regenerator" target="_blank" rel="noopener">regenerator</a>可以将<code>generator/yield</code>代码编译成ES5代码，用的时候需要一个大约500行源码的runtime。</li>
+</ul>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

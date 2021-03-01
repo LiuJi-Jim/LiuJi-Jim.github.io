@@ -1,0 +1,292 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>来吧，造个模板引擎轮子——开篇 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="来吧战个痛，造个模板引擎轮子。
+是的，我又给自己挖了个新坑，这次虽然代码已经写了一两个月了，但是写码之余，意犹未尽。
+我知道在MVVM代表着先进生产力的发展要求，并且也越来越流行的今天，字符串模板已经越来越势微。而且这玩意其实技术含量并不高，是“技巧 &amp;gt; 技术”的类型。不过手痒得很，于是还是造了一个。
+这次挖这个坑就是要为我的模板引擎轮子写一个开发心得流水账，暂时不知道会写多少篇，说不定两三篇，说不定一篇就变有生之年系列……
+内容方面其实很枯燥，因为我不喜欢写一些高大上的设计思路这类的东西都特么边写边删边想的哪有什么设计，对于工作之外的玩意，我就喜欢写了删删了写，说好听点这叫好读书，不求甚解（掩面逃）。
+哦，先丢个GitHub，继续做一个不负责任的男人，无测试、无DEMO、无主页的三无项目……为了尝鲜、玩票外加装逼，我用的是TypeScript来写，其实和JS也没啥差别。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="来吧，造个模板引擎轮子——开篇">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-07-13T10:31:35.000Z"><a href="/2015/07/13/make-a-js-tpl-engine/">Jul 13 2015</a></time>
+      
+      
+  
+    <h1 class="title">来吧，造个模板引擎轮子——开篇</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>来吧<del>战个痛</del>，造个模板引擎轮子。</p>
+<p>是的，我又给自己挖了个新坑，这次虽然代码已经写了一两个月了，但是写码之余，意犹未尽。</p>
+<p>我知道在MVVM代表着先进生产力的发展要求，并且也越来越流行的今天，字符串模板已经越来越势微。而且这玩意其实技术含量并不高，是“技巧 &gt; 技术”的类型。不过手痒得很，于是还是造了一个。</p>
+<p>这次挖这个坑就是要为我的模板引擎轮子写一个开发心得<del>流水账</del>，暂时不知道会写多少篇，说不定两三篇，说不定一篇就变有生之年系列……</p>
+<p>内容方面其实很枯燥，因为我不喜欢写一些高大上的设计思路这类的东西<del>都特么边写边删边想的哪有什么设计</del>，对于工作之外的玩意，我就喜欢写了删删了写，说好听点这叫<em>好读书，不求甚解</em>（掩面逃）。</p>
+<p>哦，先丢个<a href="https://github.com/liuji-jim/raze-tpl" target="_blank" rel="noopener">GitHub</a>，继续做一个不负责任的男人，无测试、无DEMO、无主页的三无项目……为了尝鲜、玩票外加装逼，我用的是TypeScript来写，其实和JS也没啥差别。</p>
+<a id="more"></a>
+<h2 id="目标设定"><a href="#目标设定" class="headerlink" title="目标设定"></a>目标设定</h2><h3 id="语法风格"><a href="#语法风格" class="headerlink" title="语法风格"></a>语法风格</h3><p>说到模板引擎，很多人都会想到PHP当中的Smarty，这也许是前端用得最多的模板引擎了。Smarty代表了一种以“定界符”为核心的模板引擎语法，例如：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;&#123;<span class="keyword">if</span> <span class="variable">$xxx</span> == <span class="string">'yyy'</span>&#125;&#125;</span><br><span class="line">    Oh yeah<span class="built_in">..</span><span class="built_in">..</span></span><br><span class="line">&#123;&#123;/<span class="keyword">if</span>&#125;&#125;</span><br></pre></td></tr></table></figure>
+<p>这种语法风格，一直延续至今，广为人们所接受。我觉得这种风格之所以大家很容易接受，一个重要的原因就是它跟ASP/JSP/PHP本身所提供的语言内嵌功能是如此的相似，甚至还有<a href="https://larsjung.de/node-cgi/" target="_blank" rel="noopener">node-cgi</a>这么好玩的东西！！例如PHP：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="php"><span class="meta">&lt;?</span> <span class="keyword">if</span> ($xxx == <span class="string">'yyy'</span>) &#123; <span class="meta">?&gt;</span></span></span><br><span class="line">    Oh yeah...</span><br><span class="line"><span class="php"><span class="meta">&lt;?</span> &#125; <span class="meta">?&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p>到了JS这边，众多流行的模板引擎，比如<a href="https://github.com/tj/ejs" target="_blank" rel="noopener">EJS</a>、<a href="https://github.com/wycats/handlebars.js" target="_blank" rel="noopener">handlebars</a>、<a href="https://github.com/janl/mustache.js" target="_blank" rel="noopener">mustuche</a>等，以及国内的（我觉得的）上乘之作<a href="https://github.com/ecomfe/etpl" target="_blank" rel="noopener">ETPL</a>、<a href="https://github.com/aui/artTemplate" target="_blank" rel="noopener">artTemplate</a>，都是沿用了定界符的语法风格。</p>
+<p>这本身不是什么问题，用定界符可以很方便的从源代码当中区分出哪些是HTML，哪些是模板逻辑，这想必是极好的。但对于我来说，我却觉得不够“<strong>骚</strong>”，用<a href="https://zh.wikipedia.org/wiki/%E5%93%88%E5%B0%94%E7%9A%84%E7%A7%BB%E5%8A%A8%E5%9F%8E%E5%A0%A1" target="_blank" rel="noopener">哈尔</a>的话说就是</p>
+<p><img src="/uploads/2015/not-beautiful.jpg" alt></p>
+<p>说到骚的话，<a href="https://github.com/jadejs/jade" target="_blank" rel="noopener">Jade</a>其实是挺骚的一个模板引擎，但是我并不喜欢它。一个是因为我不喜欢用缩进来表示代码层级的语言（一黑一大片），我喜欢大括号！一个是在过去尝试用Jade的过程中，对于内联逻辑表达式实在是太头疼了……比如在Smarty当中：</p>
+<figure class="highlight handlebars"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="template-variable">&#123;&#123;foreach from=$list item=it&#125;&#125;</span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">li</span> <span class="attr">class</span>=<span class="string">"list-item</span></span></span><span class="template-variable">&#123;&#123;<span class="builtin-name">if</span> $it.active&#125;&#125;</span><span class="xml"><span class="tag"><span class="string"> active</span></span></span><span class="template-tag">&#123;&#123;/<span class="name"><span class="builtin-name">if</span></span>&#125;&#125;</span><span class="xml"><span class="tag"><span class="string">"</span>&gt;</span></span><span class="template-variable">&#123;&#123;$it.name&#125;&#125;</span><span class="xml"><span class="tag">&lt;/<span class="name">li</span>&gt;</span></span></span><br><span class="line"><span class="template-tag">&#123;&#123;/<span class="name">foreach</span>&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+<p>的那段关于类名<code>active</code>的内联逻辑，这种丑到没朋友，但是简单粗暴能够解决问题让我不加班的代码，我竟然没研究出来Jade里怎么实现。虽然事情已经过去两年了，但这还是给我留下了巨大的心理阴影，我深信这一定是我太愚蠢了，Jade一定是可以做到的，但是我心塞了，心累了，没兴趣研究了。</p>
+<p>后来当我回想起大学的时候用微软大法C#和ASP.NET MVC的时候，在发展到某个版本的时候，微软大法推出了一款<a href="https://github.com/aspnet/Razor" target="_blank" rel="noopener">Razor模板引擎</a>（他们管叫“Render Engine”）<del>当时我好像还不大喜欢它呢，其实只是因为我当时的项目已经到后期了不可能再换模板</del>。它的语法非常的简洁，对于逻辑代码块，它使用</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">@&#123;</span></span><br><span class="line">    <span class="meta">code</span> <span class="keyword">block</span></span><br><span class="line"><span class="keyword">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>的格式，相当于直接内联C#代码，简单粗暴<em>I&#39;m lovin&#39; it</em>啊……而对于变量输出，则更加简单了：</p>
+<figure class="highlight vhdl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Hello! My name <span class="keyword">is</span> &lt;<span class="keyword">strong</span>&gt;@name&lt;/<span class="keyword">strong</span>&gt;. I<span class="symbol">'m</span> @age year<span class="symbol">'s</span> old.</span><br></pre></td></tr></table></figure>
+<p>嗯……骚骚骚，骚不住！</p>
+<h3 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h3><p>要作为一个能用的模板引擎（我没有点名黑<a href="https://github.com/olado/doT" target="_blank" rel="noopener">doT</a>，其实我说的是早期的doT，简直除了快以外……），必须有完备的功能。但功能、性能、体积必然是一个难以取舍的平衡。考虑到我的轮子定位偏node.js端，体积可以放最后一位<del>（当然为了证明我偏执狂还装逼我还是会尽量把它写小一点）</del>。功能方面，至少对于我而言，需要以下<strong>必选</strong>功能：</p>
+<ul>
+<li>变量输出</li>
+<li>循环</li>
+<li>条件</li>
+<li>函数定义/调用</li>
+</ul>
+<p>以及以下<strong>可选</strong>功能：</p>
+<ul>
+<li>变量输出filter</li>
+<li>block定义与重写</li>
+<li>模板继承（配合上面这个食用）</li>
+<li>include</li>
+</ul>
+<p>对于前5点来说，其实都是很容易实现的需求。</p>
+<p>其中<strong>函数</strong>这一块，在Smarty当中有一件很让人头疼的事情，那就是它的模板变量作用域。JS的闭包可以方便的在任何函数里访问当前词法上下文里的局部变量，这是非常方便的，而在PHP里则不行。Smarty自己设计了一个较为复杂的变量作用域系统，感觉吧，不是很好用，我反正没怎么闹得很明白。但在我的轮子里面我要让模板函数可以直接像JS一样，使用函数外层作用域当中的变量。</p>
+<p>而对于后面3点，因为涉及到跨模板文件，这在浏览器端实现起来会很难受，比如artTemplate就用<code>#id</code>来搞的，我觉得吧，还是有点鸡肋。</p>
+<p>考虑到我以娱乐为主，同时前面也说了，因为MVVM/React这类的东西存在，纯字符串模板引擎在浏览器端存在感越来越弱，那么这样的需求我就只实现在node.js端了，<code>fs.readFileSync</code>走起啊还犹豫什么……</p>
+<h3 id="基本思路"><a href="#基本思路" class="headerlink" title="基本思路"></a>基本思路</h3><p>模板语言简单地说其实就是一种DSL，模板引擎的作用就是解析、执行DSL。毫无疑问如果使用“解释执行”的办法，这多半是比较慢的。所以能见人的模板引擎一般都用的“编译执行”的办法，比如Smarty，它在第一次执行的时候把模板编译成PHP文件，后续再使用这个模板的时候就省了这一步，直到模板文件时间戳改变。</p>
+<p>早年的JS模板引擎其实是没有编译功能的，因为很多人相信<em>Eval is Evil</em>，但前辈们经过实践出真知，通过<code>new Function</code>或者<code>eval</code>将模板编译成一个JS函数，在模板重复执行的过程中毫无疑问比每次都解析是快太多了，于是JS模板引擎的工作流程就成了：</p>
+<ul>
+<li>解析模板文件，将其构造成一段JS代码（内含大量字符串拼接）</li>
+<li>将上面代码通过<code>new Function</code>或者<code>eval</code>构造成一个render函数</li>
+<li>返回render函数，对其传入data参数即可返回一段渲染后的字符串</li>
+</ul>
+<p>例如EJS的用法</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> render = ejs.compile(str, options); <span class="comment">// 编译后的render函数</span></span><br><span class="line"><span class="keyword">var</span> html = render(<span class="keyword">data</span>); <span class="comment">// 渲染结果</span></span><br></pre></td></tr></table></figure>
+<p><strong>如何解析模板文件</strong>是第一步，对于使用定界符的模板语言，在不考虑bad case的情况下其实非常简单，就是直接通过按定界符进行<code>split</code>就能把模板语言和“自然语言”区分开来，对于模板语言进行进一步解析，对于“自然语言”则直接构造成字符串拼接就完事儿了。</p>
+<p>但对于我的轮子而言，因为它的语法很骚，直接用定界符分割是很不靠谱的事情。所以我选择了使用手写（伪）Parser的办法来解析，解析速度上应该是会慢一些，不过也就几十毫秒的事儿了……几十毫秒在浏览器端会是一个挺严重的事情，可能会掉几帧，但在服务端则可以通过缓存编译结果来让它只在启动时发生一次，影响不大。如果在浏览器端应用会成问题，那么可以采用类似artTemplate的预编译法，不过<em>Done is better than perfect</em>，这些都是后话了。</p>
+<hr>
+<p>下一期节目当中就开始进入正题，写一下如何手写Parser将上述语法和功能需求构建成为目标代码。</p>
+<!--
+    首先是吃自己狗屎系列，我把我的博客原本基于[EJS](https://github.com/tj/ejs)的模板全部改为了使用自己的模板引擎。这个过程有点小煎熬，因为其实Hexo给输出到模板这一层的数据并不纯净，我所用的Light这个主题原本的EJS模板里夹杂了很多JS逻辑（可能这是早期主题的问题，也许较新的Hexo主题已经没这种问题了），不过好赖还是给克服了。
+-->
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>编码歪传——基础篇 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="子曰：乱码是一种思念，而思念是一种病。相信很多Web人常常纠结于乱码当中，可能是展现、可能是表单提交、可能是数据库、可能是接口、可能是抓取……反正任何一个涉及到输入或者输出字符的地方都有可能被你碰到过乱码。
+为了解释和解决乱码问题，并且明确一些常见的误区，我打算写这样一个系列，介绍一些字符编码相关的东西，目前规划了3篇。
+基本上内容会比较偏科普性质，希望大神们轻拍，因为我相信这些将会是非常重要的基础知识，如果你能完整的读下去，肯定会在你以后遇到乱码的时候帮助到你的思考方式，快速找到原因。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="编码歪传——基础篇">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-03-06T12:23:12.000Z"><a href="/2015/03/06/something-about-encoding-basic/">Mar 6 2015</a></time>
+      
+      
+  
+    <h1 class="title">编码歪传——基础篇</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>子曰：乱码是一种思念，而思念是一种病。相信很多Web人常常纠结于乱码当中，可能是展现、可能是表单提交、可能是数据库、可能是接口、可能是抓取……反正任何一个涉及到输入或者输出字符的地方都有可能被你碰到过乱码。</p>
+<p>为了解释和解决乱码问题，并且明确一些常见的误区，我打算写这样一个系列，介绍一些字符编码相关的东西，目前规划了3篇。</p>
+<p>基本上内容会比较偏科普性质，希望大神们轻拍，因为我相信这些将会是非常重要的基础知识，如果你能完整的读下去，肯定会在你以后遇到乱码的时候帮助到你的思考方式，快速找到原因。</p>
+<a id="more"></a>
+<h2 id="字符"><a href="#字符" class="headerlink" title="字符"></a>字符</h2><p>我们的语言基本上都围绕着<strong>字符</strong>，就是<strong>character</strong>，常简称<strong>char</strong>，很多时候字符会是文本的最小组成单位（注意只是“很多时候”，因为世界是奇妙的）。</p>
+<p>不是一定要文字才叫字符，一些注音字符、数学符号、某些文字里的修饰符号、特殊符号、表格符号、甚至Emoji等等，其实都是字符。</p>
+<h2 id="字符集"><a href="#字符集" class="headerlink" title="字符集"></a>字符集</h2><p>字符要成套才有用，比如“英文字母”就是一个字符集，当然这么说听起来对计算机毫无意义。</p>
+<p>一般我们所说的<strong>字符集</strong>（Character Set）就是一个规范，它收录若干字符，并且给这些字符逐一分配了一个<strong>编号</strong>当作索引（为了不过早引入<strong>编码</strong>的概念造成混淆，这里我称其为“编号”）。</p>
+<h3 id="ASCII"><a href="#ASCII" class="headerlink" title="ASCII"></a>ASCII</h3><p>ASCII是当今计算机世界最经典的字符集，它收录了英文字母和若干标点，还有一些专门供计算机使用（不是给人看）的控制字符。</p>
+<h3 id="GB系列"><a href="#GB系列" class="headerlink" title="GB系列"></a>GB系列</h3><p><strong>GB2312</strong>是一个常见的中文字符集，其中“GB”就是“国标”（咱们国家很多不同行业的标准代号都是这样命名的）。它收录了大概几千个汉字，以及几百个西文字符。</p>
+<p><strong>GBK</strong>是微软最早在Win95里实现的对GB2312进行的扩展，追加了很多繁体字和西文字符，总计收录的字符数大概有20000多个。K就是拼音“扩展”。</p>
+<p><strong>GB18030</strong>是国标对GB2312的升级（当然中间还有其他升级，但大多被淹没在历史潮流里面了），它一下就收录了70000多个字符，最大的升级部分有繁体中文字符、新字、生僻字、少数民族文字、日韩字符等。</p>
+<p>上面三个GB系列的字符集都是为中文设计的，当然也扩充了一些东亚语文的内容（CJK字符，Chinese, Japanese, Korean），因为这些邻居的字符在中国也挺常出现的。</p>
+<h3 id="Big5"><a href="#Big5" class="headerlink" title="Big5"></a>Big5</h3><p>又称大五码，是繁体中文地区，例如湾湾、港港、澳澳常用的字符集，大概收录了一万多个字符，其中以繁体中文为主。因为被Windows所接受成为繁中版的默认编码而成为了事实标准。</p>
+<h3 id="UCS"><a href="#UCS" class="headerlink" title="UCS"></a>UCS</h3><p>就像中文一样，几乎每种语言都存在一个给自己的语言设计字符集的问题。</p>
+<p>ISO意识到这个问题之后，设计了一套<strong>通用字符集UCS</strong>（Universal Character Set），目的是用一套字符集表示全世界（甚至外星人！？）的所有字符！</p>
+<p>结果UCS成功了，因为互联网发展的太快了，任何国家的人每天都在互联网上浏览来自全世界的不同语言不同文字的内容，大家当然希望用一套字符集就能收录全世界所有的字符。</p>
+<h2 id="字符编码"><a href="#字符编码" class="headerlink" title="字符编码"></a>字符编码</h2><p>很多人会把<strong>字符集</strong>和<strong>字符编码</strong>的概念搞混，其实不怪，因为这俩东西好多时候都是捆绑定义的。</p>
+<p><strong>字符编码</strong>（Character Encoding）就是按照一定的技术要求（比如以8bit为单位）对字符集中的每一个字符进行编码，以便文本能够在计算机和网络传输上使用。</p>
+<p>简单的说，就是把字符集里面的那个每个字符的编号，给弄成计算机能懂的格式。</p>
+<p>很多字符集在制定的时候，就已经配套了它的编码方案，比如ASCII、GB系列、Big5。对于这种字符集/编码，称呼上虽然模糊，但结合技术语境而言一般也不会有什么误解。</p>
+<h3 id="ASCII-1"><a href="#ASCII-1" class="headerlink" title="ASCII"></a>ASCII</h3><p>标准ASCII只收录了128个字符，使用7bit可以完美编码。例如英文字母<code>A</code>的ASCII编码就是十六进制<code>0x41</code>，然后1字节剩下的一位就没啥用了，可以用来当奇偶校验。</p>
+<p>后来ASCII被扩展到了8bit，供256个字符，用8bit也就是1字节可以完美编码，并且低7字节完全兼容。</p>
+<p>ASCII是国际标准而扩展ASCII并不是，下文所说到的“兼容ASCII”都是指兼容7bit的标准ASCII。</p>
+<h3 id="GB2312"><a href="#GB2312" class="headerlink" title="GB2312"></a>GB2312</h3><p>GB2312使用1/2字节变长编码，单字节部分是兼容ASCII，其他几千个字符都是用双字节编码。</p>
+<p>GB2312在编码的时候使用了一个“分区”的概念，小时候家里有一本区位码表，就是配合Windows里古老的“区位输入法”用的。</p>
+<h3 id="GBK"><a href="#GBK" class="headerlink" title="GBK"></a>GBK</h3><p>GBK的编码方案是GB2312的超集，它完全兼容GB2312，不过把GB2312里面没定义的那些编码空间都用起来了。</p>
+<h3 id="GB18030"><a href="#GB18030" class="headerlink" title="GB18030"></a>GB18030</h3><p>GB18030的编码方案稍微复杂一点，它用的是1/2/4字节变长编码方案。它完全兼容GB2312，基本上兼容GBK。</p>
+<h3 id="Big5-1"><a href="#Big5-1" class="headerlink" title="Big5"></a>Big5</h3><p>Big5使用固定两字节编码，它的首字节避开了ASCII的范围，因此实际在程序实现上面它可以近似兼容ASCII，由于它的低字节包含了一些ASCII字符，这个兼容也是不完美的，具体情况可以看看维基百科，非常有趣。</p>
+<h3 id="Unicode"><a href="#Unicode" class="headerlink" title="Unicode"></a>Unicode</h3><p>Unicode有一个非常高大上的中文名字叫万国码<del>，呵呵，这个名字真是散发着一股农业重金属的气息啊</del>。其实也是个字符集，它和UCS之间有微妙的高度雷同关系，好在两边的组织都意识到了搞分化是不好的，于是互相之间达成了高度的一致。虽然它们的确是两个不同的标准，但很多时候混淆来看也无妨。</p>
+<p>Unicode是定长编码，根据版本不同，它有2字节（对应UCS-2）、4字节（对应UCS-4）的版本。</p>
+<p>因为Unicode是定长的，它实在太简单粗暴了。例如如果用4字节的Unicode来传输英文文本就浪费了3倍的体积，而用2字节的版本也不爽，一来容量较小，二来对于英文文本也还是浪费的。于是在实现上对它进行了一定的优化，称为<strong>Unicode转换格式（Unicode Transformation Format）</strong>也就是我们耳熟能详的<strong>UTF</strong>了。</p>
+<h4 id="UTF-32"><a href="#UTF-32" class="headerlink" title="UTF-32"></a>UTF-32</h4><p>UTF-32是UCS-4的最朴素的实现方式，就是简单地用定长4字节。</p>
+<p>缺点嘛很明显就是很浪费体积。</p>
+<p>优点也是有的，首先就是把它转换到Unicode最简单，而且对于“第[i]个字符”这种随机访问也很好计算，直接<code>字节数/4</code>就是了对不？</p>
+<p>但因为组合字符（比如越南语，网上用来搞一个超长的流泪图标破坏排版那种）的存在，一个UTF-32码元（4字节）严格上也并非一个文本编辑上的单元，这种情况下对于排版系统而言UTF-32没有太多优势。</p>
+<h4 id="UTF-16"><a href="#UTF-16" class="headerlink" title="UTF-16"></a>UTF-16</h4><p>UTF-16是使用2/4字节实现的UCS-4变长编码。</p>
+<p>因为大多数时候用到的字符不超过65536个，所以UTF-16在大多数时候1个字符都只占2字节，这样比起UTF-32省了接近一半体积，同时它的解析也不会太麻烦。</p>
+<p>固定长的编码方式对于计算机程序而言有一个非常大的优势就是字符串处理会容易的多，尤其是正则表达式的实现。因此很多现代语言，例如C#/Java的字符串内部实现使用UTF-16，因为它是一种效率和体积比较平衡的编码方式。</p>
+<h4 id="UTF-8"><a href="#UTF-8" class="headerlink" title="UTF-8"></a>UTF-8</h4><p>UTF-8应该是现在互联网上使用最广泛的统一语言编码实现方式了。</p>
+<p>它是1-4字节变长编码（原本是1-6字节，但是因为后面那些超出了Unicode定义了，后来就改成1-4字节了）。单字节的情况兼容ASCII，在这个由英文主宰的互联网环境里面这是非常好的特性，因为它在很多时候会非常节省体积，而且这种时候完全不需要编码转换。</p>
+<p>但它的缺点也相当明显，将UTF-8转换到Unicode的算法会更加复杂，效率降低。</p>
+<p>对于中文环境而言UTF-8也比较吃亏，因为使用UTF-8编码大多数中文字符需要3字节，这就比GB系列和UTF-16浪费空间。</p>
+<p>UTF-8并未编码0x10FFFF以上的部分，所以严格的说它只是UCS-4的子集。好在缺失的那部分本身就不受UCS/Unicode的重视，估计实在是太犄角旮旯了。</p>
+<p>我觉得UTF-8最终成为互联网主流很大一定程度是因为它的单字节是兼容ASCII的。</p>
+<h2 id="阶段性小结"><a href="#阶段性小结" class="headerlink" title="阶段性小结"></a>阶段性小结</h2><h3 id="字符集-1"><a href="#字符集-1" class="headerlink" title="字符集"></a>字符集</h3><p>收录了很多字符，并且编号，给人看的。</p>
+<h3 id="编码"><a href="#编码" class="headerlink" title="编码"></a>编码</h3><p>实现一个字符集，将它的编号以一定规则用二进制实现，给计算机看的。</p>
+<h3 id="GB系列-1"><a href="#GB系列-1" class="headerlink" title="GB系列"></a>GB系列</h3><p>中国的国标字符集/编码，GB2312和GBK已经基本上过时了，如果要良好的支持中日韩文，又逃不开GBK的魔爪（比如历史代码束缚），那可以考虑升级到GB18030，这是国标的最新版，也是最先进的一版。</p>
+<h3 id="UCS-Unicode"><a href="#UCS-Unicode" class="headerlink" title="UCS/Unicode"></a>UCS/Unicode</h3><p>把全世界上百万个你见过的或者你没见过的字符全部收录进一套字符集，已经被全世界接受成为了国际标准。</p>
+<h3 id="UTF"><a href="#UTF" class="headerlink" title="UTF"></a>UTF</h3><p>UCS/Unicode转换格式，就是实用的编码方案，用于计算机实现。</p>
+<h3 id="UTF-16-1"><a href="#UTF-16-1" class="headerlink" title="UTF-16"></a>UTF-16</h3><p>UCS/Unicode的一种折衷了处理效率和存储空间的编码实现方案，常被各种现代语言当作字符串内部编码使用。</p>
+<h3 id="UTF-8-1"><a href="#UTF-8-1" class="headerlink" title="UTF-8"></a>UTF-8</h3><p>UCS/Unicode的一种倾向于节省空间的编码实现方案，因为对ASCII兼容，对英文文本非常有利，成为了当今互联网的主流（甚至事实标准）。</p>
+<p><strong>如果你的网站没有任何历史包袱，直接上UTF-8别商量！</strong></p>
+<p><strong>如果你的网站有一些历史包袱，商量商量还是上UTF-8吧，包袱的接口上转换一下编码。</strong></p>
+<h2 id="预报"><a href="#预报" class="headerlink" title="预报"></a>预报</h2><p>呵呵呵呵，虽然文章的标题叫做《编码歪传》，但其实上面的内容一点也不歪嘛。</p>
+<p>有观众看不下去了：“拜托，你讲这些什么乱七八糟的理论知识我没啥兴趣啊，我想知道的其实只是为什么我的网页会乱码啊老湿！”</p>
+<p>对于上面的问题我只想说四个字：<del>请联系我</del>请看下集：<a href="/2015/03/07/something-about-encoding-web/">《编码歪传——Web篇》</a></p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

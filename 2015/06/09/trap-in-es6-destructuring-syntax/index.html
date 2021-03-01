@@ -1,0 +1,281 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>一个关于JavaScript解构（destructuring）语法的……呃，陷阱？ | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="没有摘要，直接看文可好？">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="一个关于JavaScript解构（destructuring）语法的……呃，陷阱？">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-06-09T10:31:35.000Z"><a href="/2015/06/09/trap-in-es6-destructuring-syntax/">Jun 9 2015</a></time>
+      
+      
+  
+    <h1 class="title">一个关于JavaScript解构（destructuring）语法的……呃，陷阱？</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>没有摘要，直接看文可好？<br><a id="more"></a></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">arr</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> [<span class="number">1</span>, <span class="number">2</span>];</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> [a, b] = arr();</span><br><span class="line"><span class="comment">// a = 1, b = 2;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">obj</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> &#123; <span class="attr">foo</span>: <span class="string">'bar'</span> &#125;;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> &#123;<span class="attr">foo</span>: fu&#125; = obj();</span><br><span class="line"><span class="comment">// fu = 'bar'</span></span><br></pre></td></tr></table></figure>
+<p>上面是两种最基本的解构语法</p>
+<p>那么看看下面的例子（来源<a href="http://weibo.com/2930876843/Ckzs5kD76" target="_blank" rel="noopener">@SYSU_Joyee的微博</a>）</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> foo = [<span class="string">'a'</span>, [&#123; <span class="attr">foo</span>: <span class="string">'bar'</span> &#125;, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]];</span><br><span class="line"><span class="keyword">var</span> [a, [&#123; <span class="attr">foo</span>: fu &#125;, , ...tail], missing, def = <span class="string">'default value'</span>] = foo;</span><br></pre></td></tr></table></figure>
+<p>晕了吧，解读一下。</p>
+<p>第一步，整体上，左边是一个数组解构，其中几个声明分别为<code>a, 一个数组, missing, def（带默认值）</code>。</p>
+<ul>
+<li><code>a</code>对应的是<code>&#39;a&#39;</code>。</li>
+<li><code>一个数组</code>是一个嵌套的解构，这个下面再看。</li>
+<li><code>missing</code>对应数组越界，也就是<code>undefined</code>。</li>
+<li><code>def</code>对应数组越界，本来也是<code>undefined</code>，但是它带默认值了，所以应该是<code>&#39;default value&#39;</code>。</li>
+</ul>
+<p>上面的<code>一个数组</code>是嵌套在解构里的另一个数组解构，对它单独拆开，左边的几个声明是<code>一个对象, 抛弃, 剩余</code>。</p>
+<ul>
+<li><code>一个对象</code>是一个对象解构，结果是<code>fu = &#39;bar&#39;</code>。</li>
+<li><code>抛弃</code>这个就不用说了，它抛弃了<code>1</code>。</li>
+<li><code>剩余</code>就是剩下的<strong>数组</strong>，结果是<code>tail = [2, 3, 4, 5]</code>。</li>
+</ul>
+<p>so far，看起来还是比较简单的。</p>
+<p>下面看一些复杂的。</p>
+<p>以下例子来自<a href="http://typeof.net/2014/m/dont-invent-a-language-when-idle.html" target="_blank" rel="noopener">Belleve Invis的博客</a></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> a = &#123;&#125;;</span><br><span class="line"><span class="keyword">var</span> b = a;</span><br><span class="line">[a.x, a.y, a.x] = [<span class="number">1</span>, (a = &#123;&#125;), <span class="number">3</span>];</span><br></pre></td></tr></table></figure>
+<p>注意第三行的赋值语句右边也有一个赋值语句，那么执行顺序是怎样？</p>
+<p>按照人类直觉的理解，上面的代码应该等价于：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a.x = <span class="number">1</span>;</span><br><span class="line">a.y = (a = &#123;&#125;);</span><br><span class="line">a.x = <span class="number">3</span>;</span><br></pre></td></tr></table></figure>
+<p>于是最终结果是<code>a = { x: 3 }, b = { x: 1, y: Object }</code>其中的<code>y</code>就是<code>a</code>的引用</p>
+<p>然而实际结果却是</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">a = &#123; <span class="attr">x</span>: <span class="number">3</span>, <span class="attr">y</span>: <span class="built_in">Object</span> &#125; <span class="comment">// 其中的y就是a的引用</span></span><br><span class="line">b = &#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>虽然绝大多数人这辈子也不会写这种shit一样的代码，但还是需要知道为什么会是这样。</p>
+<p>因为es6的草案对解构的策略是：</p>
+<ul>
+<li>先分析左侧，得到一个赋值模式（AssignmentPattern）</li>
+<li>计算右侧，得到一个值</li>
+<li>按照左侧的模式，将右侧的值当中一部分赋值到左侧</li>
+</ul>
+<p>其中第三步隐含了左侧的模式可能内嵌了另一个解构，所以上述步骤是递归进行的。</p>
+<p>于是乎上面的代码正确的等价应该是：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> a = &#123;&#125;;</span><br><span class="line"><span class="keyword">var</span> b = a;</span><br><span class="line"><span class="keyword">var</span> _tmp = [<span class="number">1</span>, (a = &#123;&#125;), <span class="number">3</span>];</span><br><span class="line">a.x = _tmp[<span class="number">0</span>];</span><br><span class="line">a.y = _tmp[<span class="number">1</span>];</span><br><span class="line">a.x = _tmp[<span class="number">2</span>];</span><br></pre></td></tr></table></figure>
+<p>在上述代码中，第3行将<code>a</code>赋值为了<code>{}</code>，此时<code>a</code>与<code>b</code>不再指向同一个对象。第4行中，（新的）<code>a</code>被赋值<code>a.x = 1</code>。第4行，（新的）<code>a</code>被赋值<code>a.y = a</code>，这里形成了一个循环引用的结构。第5行就不用说了，<code>a.x = 3</code>。而至始至终，<code>b</code>还是最早的那个<code>{}</code>。</p>
+<p>这样的策略虽然反直觉，但细想之下不难理解。</p>
+<p>首先是这样的策略非常的普适，如果左边的结构复杂，那么就会有一些分歧，比如应该按照深度优先还是广度优先来求值赋值呢？另一方面就是实现起来的话符合直觉的方式会变得更复杂一些，而现在的策略则只是需要在语法分析层面对赋值语句的语法树递归展开就行了。</p>
+<p>我们把上面两段代码分别扔进<a href="https://babeljs.io" target="_blank" rel="noopener">babel</a>里可以得到如下的transpile结果：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">_toArray</span>(<span class="params">arr</span>) </span>&#123; <span class="keyword">return</span> <span class="built_in">Array</span>.isArray(arr) ? arr : <span class="built_in">Array</span>.from(arr); &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> foo = [<span class="string">'a'</span>, [&#123; <span class="attr">foo</span>: <span class="string">'bar'</span> &#125;, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]];</span><br><span class="line"><span class="keyword">var</span> a = foo[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> _foo$<span class="number">1</span> = _toArray(foo[<span class="number">1</span>]);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> fu = _foo$<span class="number">1</span>[<span class="number">0</span>].foo;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> tail = _foo$<span class="number">1.</span>slice(<span class="number">2</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> missing = foo[<span class="number">2</span>];</span><br><span class="line"><span class="keyword">var</span> _foo$<span class="number">3</span> = foo[<span class="number">3</span>];</span><br><span class="line"><span class="keyword">var</span> def = _foo$<span class="number">3</span> === <span class="literal">undefined</span> ? <span class="string">'default value'</span> : _foo$<span class="number">3</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ---------------------------------</span></span><br><span class="line"><span class="keyword">var</span> a = &#123;&#125;;</span><br><span class="line"><span class="keyword">var</span> b = a;</span><br><span class="line"><span class="keyword">var</span> _ref = [<span class="number">1</span>, a = &#123;&#125;, <span class="number">3</span>];</span><br><span class="line">a.x = _ref[<span class="number">0</span>];</span><br><span class="line">a.y = _ref[<span class="number">1</span>];</span><br><span class="line">a.x = _ref[<span class="number">2</span>];</span><br><span class="line">_ref;</span><br></pre></td></tr></table></figure>
+<p>可以发现babel的转译是非常遵循于es6草案的。</p>
+<p>到了这里，我们应该可以安心的玩解构了，对于一些场景它会显得非常非常的有用，例如：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[a, b] = [b, a]; <span class="comment">// swap</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">hsl2rgb</span>(<span class="params">h, s, l</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="keyword">return</span> [r, g, b];</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> [r, g, b] = hsl2rgb(h, s, l);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">negate</span>(<span class="params">x, y</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="keyword">return</span> [x, y];</span><br><span class="line">&#125;</span><br><span class="line">[x, y] = negate(x, y);</span><br></pre></td></tr></table></figure>
+<p>在一些函数当中为了实现多返回值通常都会用返回一个数组或者KV来当元组的概念，但在接收返回值的时候却需要很麻烦的手工展开。有解构就可以更愉快的写这些代码了。</p>
+<p>对于上面举例的解构在求值策略上的坑，只要注意用的姿势就OK了。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

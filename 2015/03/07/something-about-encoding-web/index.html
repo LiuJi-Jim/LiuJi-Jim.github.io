@@ -1,0 +1,284 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>编码歪传——Web篇 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="继续上一篇。
+身为一名Web开发者，这一篇将介绍一下在Web应用当中常会出现编码问题的地方。文中经常会乱用“字符集”和“编码”，不过看明白了第一篇的话相信你不会混淆概念，而且我个人觉得这两个概念很多时候混淆也无妨……">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="编码歪传——Web篇">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-03-07T03:23:12.000Z"><a href="/2015/03/07/something-about-encoding-web/">Mar 7 2015</a></time>
+      
+      
+  
+    <h1 class="title">编码歪传——Web篇</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>继续上一篇。</p>
+<p>身为一名Web开发者，这一篇将介绍一下在Web应用当中常会出现编码问题的地方。文中经常会乱用“字符集”和“编码”，不过看明白了第一篇的话相信你不会混淆概念，而且我个人觉得这两个概念很多时候混淆也无妨……</p>
+<a id="more"></a>
+<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>出于把问题描述得稍微清楚一点的目的，我打算先把我们的概念进行一下定义。</p>
+<p>一般而言我们常遇到乱码的场景有这样两种：</p>
+<ol>
+<li>作为写入端，我应该用什么编码来<strong>存储</strong>/<strong>传输</strong>？</li>
+<li>作为读出端，我应该用什么编码来<strong>消费</strong>我所收到的字节流？</li>
+</ol>
+<p>因为我觉得绝大多数具体场景都可以归纳成上述两种，所以这样应该可以简化一下问题。</p>
+<h2 id="程序内部处理"><a href="#程序内部处理" class="headerlink" title="程序内部处理"></a>程序内部处理</h2><p>现代编程语言一般都内建<strong>字符串</strong>作为自带的数据类型，一门强大且又实用的编程语言通常来说都有高效的字符串实现以及大量配套的字符串处理函数。</p>
+<p>在上一篇中我们有顺带提到，<strong>UTF-16</strong>因为是一种在处理效率和存储空间之间比较平衡的，同时编码空间又足够大的编码方式，在一些编程语言当中被采用来当作字符串的内部编码。比如C#、Java（可能因JVM/JDK而异）。</p>
+<p>一般而言编程的String类型编码都是固定的，但是通常会提供丰富的编码转换函数。一种（我认为）比较可靠的方式是：String用固定编码方式实现，以使得标准的字符串函数能够只关注一种编码，从而保证它的正确性，也能够最大程度地针对性优化；而通过使用类库来将String转换为特定编码的字节流，或将字节流以特定编码转换成String。</p>
+<p>反过来看，像PHP里的字符串就比较糙，它的编码有很大问题，如果一个字符串是多字节的（通过上一篇我们了解到除了ASCII以外基本上常用的编码都是多字节的），处理它就要用mb_xxxx系列的函数。这对编程是一种负担，因为这样就意味着String类型对字符的抽象力度不足，还是得花很多精力去关注字符串的编码。对于PHP的程序一个办法就是在整个程序内部统一编码，同时基于此选择好使用那一组字符串处理函数（作为项目规范），避免程序内部关心编码的问题，只把编码暴露在与外界交换数据的地方。</p>
+<h2 id="存储-传输"><a href="#存储-传输" class="headerlink" title="存储/传输"></a>存储/传输</h2><p>管你是什么程序，程序所生成的东西总要被消费才有意义（不然就变成烤机程序了）。Web应用里最常见的两种对程序结果的消费方式，一是把它存储（数据库、文件）起来，二是把它传输给用户（浏览器）以供展现。</p>
+<p>当需要存储/传输文本的时候，就需要高度关心字符编码了。</p>
+<h3 id="存储"><a href="#存储" class="headerlink" title="存储"></a>存储</h3><p>很多人遇到的问题是把用户表单提交的东西写进MySQL里面以后乱码了，这个问题一些可能的原因有：</p>
+<ol>
+<li>提交内容的字符编码</li>
+<li>服务端程序（如PHP）内部使用的编码</li>
+<li>MySQL传输时候使用的编码</li>
+<li>MySQL数据库声明和使用的字符集</li>
+</ol>
+<p>第1点下一步会更详细的展开。</p>
+<p>第2点在上文当中有一定介绍了，PHP程序所接收的字节流被当作字符串看待后，我们的程序必须要选择合适的字符串处理函数，结果才会是对的。比如一个截断程序要能正确处理多字节编码，如果把多字节编码切断成“半个字符”严重的时候甚至会造成PHP出core。</p>
+<p>第3点就是PHP中常见的<code>mysqli_set_charset</code>所覆盖的范围，没错，因为MySQL其实是服务，所以这个存储其实也是传输。</p>
+<p>第4点就是在建库建表的时候选的那个字符集和编码。</p>
+<p>这当中的重点的就是2需要对1的编码有预期，正确的把1的字节流解析出来，转换成程序内部字符串实现所使用的编码，套用正确的算法，接下来与MySQL驱动和服务之间使用双方预期的编码，最终以数据库定义的时候所声明的字符集保存下来。</p>
+<h3 id="传输"><a href="#传输" class="headerlink" title="传输"></a>传输</h3><p>一个HTTP请求发出的时候，用户代理（UserAgent，通常是浏览器）可以通过HTTP Request Header中的<code>Accept-Charset</code>字段来显式声明预期返回的编码，这是一种协商手段。现在的浏览器都很流弊，啥编码都能解析，于是直接懒得发这个，言下之意就是服务端给返回什么就消化什么。</p>
+<p>对于服务端而言，如果收到的请求指定了<code>Accept-Charset</code>那么应该按照请求者的预期来决定响应内容的编码，如果没有指定，则可以“自由发挥”，这种时候理论上说你用什么编码都可以，但最终都必须通过某种手段告诉请求者响应内容是什么编码。</p>
+<p>方式1：使用HTTP Response Header中<code>Content-Type</code>来给响应内容声明编码。比如<code>Content-Type: text/html; charset=UTF-8</code>。这里有个小插曲，在IE6（没记错的话）里用Ajax请求的时候如果Response写的是小写<code>utf-8</code>就会跪，必须要大写。<del>别问我为什么知道，说起来都是泪，那是一个风雨交加的深夜……</del></p>
+<p>方式2：通过HTML页面头部的<code>&lt;meta charset=&quot;xxx&quot;&gt;</code>标签来给页面声明编码。如果Response Header里不写编码，浏览器就会尝试找这个标签，然后将接下来的内容以这个编码解读。这就是为什么我们提倡将<code>&lt;meta charset=&quot;xxx&quot;&gt;</code>写在<code>&lt;title&gt;</code>标签之前的原因，如果<code>&lt;title&gt;</code>出现在此之前，它里面的字符就不知道该用什么编码来解读了，直观的说就是可能造成title乱码。</p>
+<p>一旦决定了编码，服务端程序就会将字符以该种编码最终写入字节流，传给客户端。</p>
+<p>那如果两种方式都用了，口径却不一致会怎么办？首先当然是给开发者赏两耳光，然后有兴趣的可以做做实验看看不同的浏览器会有什么不同的兼容策略。</p>
+<h3 id="用户提交内容"><a href="#用户提交内容" class="headerlink" title="用户提交内容"></a>用户提交内容</h3><p>上面有说表单提交也有个编码的问题，其实包括Ajax请求等，只要是客户端向服务端发送内容，都一样，但通过上面的例子我想你已经明白了，这完全是镜像的，这次浏览器扮演着信息的生产者的角色，本质是完全一样的。</p>
+<h2 id="消费"><a href="#消费" class="headerlink" title="消费"></a>消费</h2><p>给你一本书，你怎么知道它是中文版还是英文版？“我靠，它用英文写的就是英文版，用中文写的就是中文版啊。”</p>
+<p>人类的大脑简直聪明得要命了，这种问题根本不需要动脑子，计算机就要笨多了。其实并不是计算机笨，而是这个问题在计算机的领域里面太难了。比如上一篇文章说到GB2312是兼容ASCII的，那么如果收到的内容前几个字节是<code>3C 68 74 6D 6C 3E</code>也就是<code>&lt;html&gt;</code>的ASCII编码，也许臆想它是ASCII的，于是后面出现的双字节字符可能就会遭殃了。UTF-8有一个很不错的性质是它比较容易识别，但是也有错误率和效率问题。<del>所以这些你猜来我猜去的不靠谱的倒霉事情就只让它出现在男女情爱当中吧不要来污染我们纯净的计算机世界了好吗。</del></p>
+<p>上面一节当中有说到，一个靠谱的信息生产者，会在给你传递信息的时候协商或声明编码。身为一个合格的信息消费者，浏览器可以通过这些声明来选择正确的编码，解读字节流。</p>
+<p>浏览器也是个程序，于是它内部也会有字符串实现，也许它用自带字符串的语言实现的，也许它用自己实现的字符串（如C/C++），不管怎样，有了明确的编码，浏览器都能够将所获得的字节流转换成自己所使用的内部编码。</p>
+<p>事已至此，似乎只要生产者靠谱，消费者要注意的问题就非常少了。在服务端我们小心翼翼地处理那么多环节的编码问题，到了浏览器好像已经完事儿了。不管这之前有再多波折，浏览器内部各种对字符的处理再多，基本上都不会有编码的问题了，简直太没劲了，于是这里稍微发散思维一下。</p>
+<p>接下来浏览器就需要把字符显示出来，我们考虑浏览器通过操作系统给它提供的API。API要么规定编码要么协商/声明编码对吧，如果是前者，浏览器需要把自己内部用的编码转换成API所预期的编码，然后调用API——在这个场景里面，浏览器又从信息的消费者变成生产者了对吧，而这次操作系统是消费者。</p>
+<p>然后我们假设操作系统将会用某种字体渲染这段字符，字体文件内部一般都对每个字符进行编号，现代的字体一般都会用Unicode，没错，我们又回到了字符集的概念。操作系统将字符编码还原到字符集当中的字符编号（显然对于变长字节编码这个过程要一些运算），在字体文件内通过编号查到这个字符，一个设计良好的字体可能对同一个字符会设计了多个<strong>字形</strong>（Glyph），比如Regular体一个、粗体一个、斜体一个，甚至还有更多更多，比如组合字符、一些特殊规则下的变形字符，不展开讨论。</p>
+<p>这些渲染规格都是在API里指定好的，然后就用对应的字形来进行渲染。渲染字形这事儿还不是一个简单的事情，字体分点阵的、矢量的（甚至图片的？），不同的渲染引擎，例如Windows上的GDI、DirectWrite、第三方的GDI++、MacType，还有OSX的渲染引擎，Linux不同的桌面系统的渲染引擎，在最终把字形绘制成像素点的算法上有细节区别。</p>
+<p>上面说的还只是渲染单个字符的时候的问题，在此之前还要做文字的排版啊什么的，哪怕看起来很小一件事情也够人钻大半辈子了。我的天，人类为了在计算机上展示文字到底下了多少功夫？</p>
+<p>好的好的，刚才似乎发散的太多了，就此打住，总之就浏览器而言对于一个HTML页面的消费差不多是可以理解了。</p>
+<h2 id="阶段性小结"><a href="#阶段性小结" class="headerlink" title="阶段性小结"></a>阶段性小结</h2><p>把乱码的问题从一个信息的生产者和消费者两个角度来看，中间所经历的哪些环节涉及到编码，哪些环节涉及到编码的协商与声明，就明确多了。上面的例子其实很容易就可以举一反三。</p>
+<p>于是一些常见的诸如“PHPMyAdmin里看是正常的，页面上是乱码”或者“页面上是正常的，PHPMyAdmin里看着是乱码”这种问题可能会是哪些个环节闯的祸心里就已经有谱了。对于各种接口，比如与MySQL通讯，比如与后端之间的接口，如何协商/声明编码，什么时候需要转换编码，心里面也有谱了。</p>
+<h2 id="预报"><a href="#预报" class="headerlink" title="预报"></a>预报</h2><p>呵呵呵呵，这次的内容虽然没那么理论，但是还是太简单了嘛，看到乱码就查编码呗你当我是傻X呢。</p>
+<p>这时候也有观众吐槽：“那么各种程序当中用的编码比如URL Encode、Base64又是些啥玩意啊老湿？”</p>
+<p>也有好奇心过盛的观众要问：“问号和方块是怎么回事？屯屯屯烫烫烫锟斤拷又是些什么鬼呢老湿？”</p>
+<p>对于上面的问题我只想说四个字：<del>请联系我</del>请看终篇：<a href="/2015/03/07/something-about-encoding-extra/">《编码歪传——番外篇》</a></p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

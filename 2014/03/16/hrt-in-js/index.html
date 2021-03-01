@@ -1,0 +1,253 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>JavaScript中的高精度计时 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="HRT(High Resolution Timing, 高精度计时)在一些场合有很大的作用，比如游戏开发中，需要精确的计算两帧之间的时间差。
+在JS中常常用(new Date()).getTime()来获取毫秒级的时间戳，虽然是毫秒级，但事实上它的真实精度只能达到大概16ms的级别。例如123while (true)&amp;#123;  console.log((new Date()).getTime()); // 这样死循环浏览器会跪的，责任自负&amp;#125;
+会发现它事实上大概16ms才跳一次，也许是17ms、又或者15ms吧，反正实际精度是有限的——什么？你跟我说是1ms？我告诉你那是因为新的系统或者浏览器使用了更高精度——但这不影响这篇文章的内容……
+这对于日常应用来说完全够用了，但是对于游戏这样的场合，高精度计时就有它不可取代的意义了。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="JavaScript中的高精度计时">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2014-03-16T11:23:12.000Z"><a href="/2014/03/16/hrt-in-js/">Mar 16 2014</a></time>
+      
+      
+  
+    <h1 class="title">JavaScript中的高精度计时</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>HRT(High Resolution Timing, 高精度计时)在一些场合有很大的作用，比如游戏开发中，需要精确的计算两帧之间的时间差。</p>
+<p>在JS中常常用<code>(new Date()).getTime()</code>来获取毫秒级的时间戳，虽然是毫秒级，但事实上它的真实精度只能达到大概16ms的级别。例如<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> (<span class="literal">true</span>)&#123;</span><br><span class="line">  <span class="built_in">console</span>.log((<span class="keyword">new</span> <span class="built_in">Date</span>()).getTime()); <span class="comment">// 这样死循环浏览器会跪的，责任自负</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>会发现它事实上大概16ms才跳一次，也许是17ms、又或者15ms吧，反正实际精度是有限的——什么？你跟我说是1ms？我告诉你那是因为新的系统或者浏览器使用了更高精度——但这不影响这篇文章的内容……</p>
+<p>这对于日常应用来说完全够用了，但是对于游戏这样的场合，高精度计时就有它不可取代的意义了。</p>
+<a id="more"></a>
+<h3 id="故事从这里开始"><a href="#故事从这里开始" class="headerlink" title="故事从这里开始"></a>故事从这里开始</h3><p>上面的获得毫秒级时间戳的方式之所以精度有限，是因为它的实现方式，以及它“绝对时间”的定义。<br>以Windows为例，这一类时间戳所使用的系统调用，比如<code>GetSystemTime()</code><a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms724390.aspx" target="_blank" rel="noopener">MSDN</a>、<code>GetTickCount()</code><a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms724408.aspx" target="_blank" rel="noopener">MSDN</a>，其函数的取值并不是实时的，而是通过硬件的<strong>时钟中断</strong>被动刷新的，这里的刷新间隔“正好”就是上面那个16ms。以<code>GetSystemTime()</code>为例，它返回的是<code>SYSTEMTIME</code>结构体，<strong>这用来进行时间日期处理的，因为时间日期处理通常根本不需要也不应该用那么高的精度（甚至很多时候只需要秒级别的精度）</strong>，所以<code>(new Date()).getTime()</code>通过它们实现的确是可以胜任的。</p>
+<h3 id="现在我们明白了，靠这个时间戳是不能实现高精度计时的。"><a href="#现在我们明白了，靠这个时间戳是不能实现高精度计时的。" class="headerlink" title="现在我们明白了，靠这个时间戳是不能实现高精度计时的。"></a>现在我们明白了，靠这个时间戳是不能实现高精度计时的。</h3><p>在Windows上，常常有两种高精度计时的方式：<br>第一种是<code>timeGetTime()</code><a href="http://msdn.microsoft.com/en-us/library/ms713418.aspx" target="_blank" rel="noopener">MSDN</a>，它能返回系统启动到现在所经过的毫秒数，精度是1ms，因为它是32位的，所以大概49.71天会溢出清零。<br>第二种<code>QueryPerformanceCounter()</code>配合<code>QueryPerformanceFrequency()</code><a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms644904.aspx" target="_blank" rel="noopener">MSDN</a>实现，能够实现微秒级别的计时精度，对于大多数场合而言都够了。<br>当然还有更先进的方法，是通过CPU中的硬件计数器，和CPU每个时钟周期的时间，计算出更精确的时间（通常是纳秒级别的），对精度要求极高的场合这是最精确的选择了。</p>
+<p>通常在使用固定位数的情况下，精度越高意味着计时的范围越小，这就不罗嗦了。</p>
+<h3 id="回到JavaScript中来"><a href="#回到JavaScript中来" class="headerlink" title="回到JavaScript中来"></a>回到JavaScript中来</h3><p>上面那些乱七八糟系统调用其实更咱们都没什么太大关系，我们能干什么完全看运行环境乐意给什么。<br>在<strong>webkit</strong>中提供了<code>performance.now()</code><a href="http://updates.html5rocks.com/2012/08/When-milliseconds-are-not-enough-performance-now" target="_blank" rel="noopener">参考文献</a>来获取一个毫秒级的浮点数时间戳，我没查到资料它的有效精度是多少，不过既然给了个浮点数那就这么用着吧，我们就当它是微秒级的了！<br>在<strong>node.js</strong>中，有<code>process.hrtime()</code><a href="http://nodejs.org/api/process.html#process_process_hrtime" target="_blank" rel="noopener">DOC</a>，返回的是一个数组<code>[seconds, nanoseconds]</code>，看起来它具有纳秒级别的精度？且信了吧。</p>
+<h3 id="综合一下，我写了下面的代码"><a href="#综合一下，我写了下面的代码" class="headerlink" title="综合一下，我写了下面的代码"></a>综合一下，我写了下面的代码</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">exports.time = (<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">typeof</span> <span class="built_in">window</span> !== <span class="string">'undefined'</span>)&#123;</span><br><span class="line">    <span class="comment">// 浏览器</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">typeof</span> <span class="built_in">window</span>.performance !== <span class="string">'undefined'</span> &amp;&amp; <span class="keyword">typeof</span> performance.now !== <span class="string">'undefined'</span>)&#123;</span><br><span class="line">      <span class="comment">// support hrt</span></span><br><span class="line">      <span class="keyword">return</span> <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> performance.now();</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">      <span class="comment">// oh no..</span></span><br><span class="line">      <span class="keyword">return</span> <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">new</span> <span class="built_in">Date</span>()).getTime();</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">    <span class="comment">// node.js</span></span><br><span class="line">    <span class="keyword">return</span> <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">      <span class="keyword">var</span> diff = process.hrtime();</span><br><span class="line">      <span class="keyword">return</span> (diff[<span class="number">0</span>] * <span class="number">1e9</span> + diff[<span class="number">1</span>]) / <span class="number">1e6</span>; <span class="comment">// nano second -&gt; ms</span></span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)();</span><br></pre></td></tr></table></figure>
+<p>有了上面的代码<a href="https://gist.github.com/LiuJi-Jim/9596920" target="_blank" rel="noopener">(gist)</a>，我们就能写一个秒表神马的，在做性能测试的时候就用得上了。</p>
+<p>最后还是要唠叨一句，<strong>HRT是用来计算时间差的，不是用来计算现实中时间（挂钟时间）的</strong>。</p>
+<p>下一篇文章中，将会对JS中的时间精度进行进一步的讨论，对象自然就是<code>setTimeout/setInterval</code>了！</p>
+<h3 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h3><ol>
+<li><a href="http://www.cppblog.com/sunraiing9/archive/2006/12/14/16415.html" target="_blank" rel="noopener">http://www.cppblog.com/sunraiing9/archive/2006/12/14/16415.html</a></li>
+<li><a href="http://blog.csdn.net/hax/article/details/1449403" target="_blank" rel="noopener">http://blog.csdn.net/hax/article/details/1449403</a></li>
+<li><a href="http://blog.csdn.net/aimingoo/article/details/1451556" target="_blank" rel="noopener">http://blog.csdn.net/aimingoo/article/details/1451556</a></li>
+</ol>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

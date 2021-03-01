@@ -1,0 +1,328 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>Swift入门笔记-0 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="霉霉斯威夫特入门笔记，纯熟流水账。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Swift入门笔记-0">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-10-07T15:33:33.000Z"><a href="/2015/10/07/beginning-swift-0/">Oct 7 2015</a></time>
+      
+      
+  
+    <h1 class="title">Swift入门笔记-0</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p><del>霉霉</del>斯威夫特入门笔记，纯熟流水账。</p>
+<a id="more"></a>
+<h1 id="0-准备工作"><a href="#0-准备工作" class="headerlink" title="0. 准备工作"></a>0. 准备工作</h1><h2 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h2><p>Xcode里用Playground来玩是最简单的方法。</p>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><p>参考文献：<a href="http://wiki.jikexueyuan.com/project/swift/" target="_blank" rel="noopener">The Swift Programming Language 中文版</a></p>
+<h1 id="1-基础部分"><a href="#1-基础部分" class="headerlink" title="1. 基础部分"></a>1. 基础部分</h1><h2 id="分号"><a href="#分号" class="headerlink" title="分号"></a>分号</h2><p>Swift可以不写分号，也可以写分号，Fuck。</p>
+<h2 id="变量、常量"><a href="#变量、常量" class="headerlink" title="变量、常量"></a>变量、常量</h2><h3 id="基本方法"><a href="#基本方法" class="headerlink" title="基本方法"></a>基本方法</h3><p><code>var</code>定义变量，<code>let</code>定义常量（严格来说不是真正的常量，在class中可以通过构造函数有机会修改它，后文详述）。</p>
+<h3 id="类型推导和标注"><a href="#类型推导和标注" class="headerlink" title="类型推导和标注"></a>类型推导和标注</h3><p>默认具有类型推导，如：</p>
+<p><code>var msg = &quot;Hello, world!&quot;</code></p>
+<p>整数literal会被推导成<code>Int</code>类型，浮点数literal会被推导成<code>Double</code>类型。</p>
+<p>需要的时候可以自己加上类型标注，如：</p>
+<p><code>var msg: String</code></p>
+<h2 id="类型"><a href="#类型" class="headerlink" title="类型"></a>类型</h2><h3 id="类型转换"><a href="#类型转换" class="headerlink" title="类型转换"></a>类型转换</h3><p>把类型当一个函数看就行，如：</p>
+<p><code>let some_int = Int(some_double)</code></p>
+<h3 id="布尔类型"><a href="#布尔类型" class="headerlink" title="布尔类型"></a>布尔类型</h3><p><code>true</code>和<code>false</code>将会被推导成<code>Bool</code>类型。</p>
+<h3 id="类型别名"><a href="#类型别名" class="headerlink" title="类型别名"></a>类型别名</h3><p><code>typealias Byte = UInt8</code>——C里的<code>typedef</code>有木有……</p>
+<h3 id="元组（直接搬例子了）"><a href="#元组（直接搬例子了）" class="headerlink" title="元组（直接搬例子了）"></a>元组（直接搬例子了）</h3><h4 id="定义："><a href="#定义：" class="headerlink" title="定义："></a>定义：</h4><p><code>let http404Error = (404, &quot;Not Found&quot;)</code></p>
+<h4 id="使用："><a href="#使用：" class="headerlink" title="使用："></a>使用：</h4><p><code>let (statusCode, statusMessage) = http404Error</code>——解构有木有</p>
+<p><code>let (justTheStatusCode, _) = http404Error</code>——discard解构有木有</p>
+<p><code>http404Error.0</code>——直接访问元组里的某个元素</p>
+<h4 id="命名元素："><a href="#命名元素：" class="headerlink" title="命名元素："></a>命名元素：</h4><p><code>let http200Status = (statusCode: 200, description: &quot;OK&quot;)</code></p>
+<p><code>http200Status.statusCode</code>——访问某个元素</p>
+<h3 id="optionals"><a href="#optionals" class="headerlink" title="optionals"></a>optionals</h3><p>跟C#里的<code>Nullable</code>类型如出一辙……</p>
+<p><code>var maybeInt: Int? = 404</code>——<code>maybeInt</code>是一个<code>Int</code>的optional，现在它包含值，是404</p>
+<p><code>maybeInt = nil</code>——现在它不包含值了</p>
+<p>东西有点儿多，剩下的关于optionals的东西后面再慢慢说……</p>
+<h2 id="运算符"><a href="#运算符" class="headerlink" title="运算符"></a>运算符</h2><h3 id="算术运算符"><a href="#算术运算符" class="headerlink" title="算术运算符"></a>算术运算符</h3><p><code>+ - * / % ++ --</code>无外乎这些了，<code>/</code>对<code>Int</code>类型是整除（好啊我喜欢），自增自减的前置后置规则和C里的一样。同样也有<code>+= -= *= /=</code>等……</p>
+<h3 id="比较运算符"><a href="#比较运算符" class="headerlink" title="比较运算符"></a>比较运算符</h3><p>除了常规的<code>== != &lt; &gt; &lt;= &gt;=</code>外，也有<code>===</code>和<code>!==</code>来提供Reference Equal。</p>
+<h3 id="空合运算符-Nil-Coalescing-Operator"><a href="#空合运算符-Nil-Coalescing-Operator" class="headerlink" title="空合运算符(Nil Coalescing Operator)"></a>空合运算符(Nil Coalescing Operator)</h3><p>专门给optionals用的，和C#如出一辙，<code>a ?? b</code>等效于<code>a != nil ? a! : b</code></p>
+<h3 id="区间构造器"><a href="#区间构造器" class="headerlink" title="区间构造器"></a>区间构造器</h3><p>类似巨蟒或者Go那种快速构造一个数组的办法</p>
+<p><code>a...b</code>——闭-闭区间</p>
+<p><code>a..&lt;b</code>——闭-开区间（还能再丑一点儿吗）</p>
+<h2 id="字符串"><a href="#字符串" class="headerlink" title="字符串"></a>字符串</h2><h3 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h3><p><code>&quot;xxxx&quot;</code>字符串literal会被推导成<code>String</code>类型。</p>
+<p>Swift里的<code>String</code>被当做值类型，所以不能用<code>===</code>来比较，这样让它在参数传递的时候更容易知行合一。但猜测Runtime上还是用了字符串驻留集这类的技术来提高性能。</p>
+<h3 id="字符"><a href="#字符" class="headerlink" title="字符"></a>字符</h3><p>用<code>str.characters</code>来获取<code>str</code>的字符数组，可以<code>for-in</code>来遍历它。</p>
+<h3 id="字符串连接"><a href="#字符串连接" class="headerlink" title="字符串连接"></a>字符串连接</h3><p>大家都喜欢的<code>+</code>和<code>+=</code>（F*ck PHP）</p>
+<h3 id="Interpolation"><a href="#Interpolation" class="headerlink" title="Interpolation"></a>Interpolation</h3><p><code>var msg = &quot;Hello, \(name)&quot;</code>——几乎是现代语言必备功能了……</p>
+<h3 id="Unicode"><a href="#Unicode" class="headerlink" title="Unicode"></a>Unicode</h3><p>用<code>\u{十六进制}</code>来表示任意Unicode字符。</p>
+<p>用<code>str.utf8 str.utf16 str.unicodeScalars</code>可以获取它不同的表示方法。</p>
+<h3 id="strlen"><a href="#strlen" class="headerlink" title="strlen"></a>strlen</h3><p>Swift似乎不建议在码元级别对字符串进行处理，而建议用<code>str.characters</code>来在字符的级别进行处理，这样可以避免踩到一些组合字符的坑。</p>
+<h3 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h3><p>正因为不能直接在码元级别处理，所以直接用整数下标的方式访问字符串就瞎了，于是Swift里用了一套乍看之下有点复杂的index机制来对字符进行索引，烦，不搬了……</p>
+<h3 id="比较"><a href="#比较" class="headerlink" title="比较"></a>比较</h3><p>用<code>==</code>可以比较字符串。用<code>hasPrefix hasSuffix</code>相当于C#里面的<code>startWith endWith</code>。</p>
+<h2 id="数组、集合、字典"><a href="#数组、集合、字典" class="headerlink" title="数组、集合、字典"></a>数组、集合、字典</h2><h3 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h3><p><code>var arr = Array&lt;Int&gt;()</code>——完整声明</p>
+<p><code>var arr = [Int]()</code>——简便声明</p>
+<p><code>var arr = [1, 2, 3]</code>——使用literal声明，类型推导成了<code>[Int]</code></p>
+<p><code>var arr = arr1 + arr2</code>——两个字符串连接</p>
+<p><code>arr[0] = 1</code>——赋值</p>
+<p><code>arr[1..3] = [11, 22, 33]</code>——解构式赋值，少的吞掉，多的插入</p>
+<p>——于是可以玩出……<code>arr[1...1] = [arr[1], 11, 22, 33]</code>来当插入用，23333（不推荐，哈哈）</p>
+<figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">for item in <span class="class">arr </span>&#123;</span><br><span class="line">    <span class="comment">// 遍历</span></span><br><span class="line">&#125;</span><br><span class="line">for (i, value) in <span class="class">arr </span>&#123;</span><br><span class="line">    <span class="comment">// 能获取索引的遍历</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="集合"><a href="#集合" class="headerlink" title="集合"></a>集合</h3><p><code>var set = Set&lt;String&gt;()</code>——空集合</p>
+<p><code>var set: Set&lt;String&gt; = [&quot;Jim&quot;, &quot;Liu&quot;]</code>——使用literal声明</p>
+<p><code>var set: Set = [&quot;Liu&quot;, &quot;Jim&quot;]</code>——使用literal简便声明，类型被推导成了<code>Set&lt;String&gt;</code></p>
+<p><code>set1 == set2</code>——集合可以用<code>==</code>来判等</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> item <span class="keyword">in</span> <span class="keyword">set</span> &#123;</span><br><span class="line">    <span class="comment">// 遍历</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>……然后还有一堆集合操作的函数</p>
+<h3 id="字典"><a href="#字典" class="headerlink" title="字典"></a>字典</h3><p><code>var dict = Dictionary&lt;String, Int&gt;()</code>——完整声明</p>
+<p><code>var dict = [String: Int]()</code>——简便声明</p>
+<p><code>var dict = [&quot;Jim&quot;: 1, &quot;Liu&quot;: 2]</code>——使用literal简便声明，并能使用类型推导</p>
+<p><code>dict[&quot;Jim&quot;] = 10</code>——赋值</p>
+<figure class="highlight ceylon"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="keyword">let</span> <span class="keyword">value</span> = dict[<span class="string">"Jim"</span>] &#123;</span><br><span class="line">    <span class="comment">// 判断存在外加获取值</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight q"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">for (<span class="built_in">key</span>, <span class="built_in">value</span>) in dict &#123;</span><br><span class="line">    <span class="comment">// 遍历外加类型推导</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="枚举"><a href="#枚举" class="headerlink" title="枚举"></a>枚举</h2><h3 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h3><figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">Direction</span> &#123;</span></span><br><span class="line">    <span class="keyword">case</span> North</span><br><span class="line">    <span class="keyword">case</span> South</span><br><span class="line">    <span class="keyword">case</span> West</span><br><span class="line">    <span class="keyword">case</span> East</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>Swift里的枚举不会被隐式赋值为自增整数</strong>，如果需要定义一个“带值”的枚举，比如想把它持久化的，可以用“Raw Value”定义方式：</p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">Direction</span>: <span class="title">Int</span> &#123;</span></span><br><span class="line">    <span class="keyword">case</span> North = <span class="number">0</span></span><br><span class="line">    <span class="keyword">case</span> South</span><br><span class="line">    <span class="keyword">case</span> West</span><br><span class="line">    <span class="keyword">case</span> East</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样后面的<code>South</code>啥的会自增赋值，当然手工指定也可以。不止是<code>Int</code>类型的，其他类型也行。</p>
+<p>除了Raw Value以外，Swift还支持“相关值”（Associated Value），具体就不搬运资料了。</p>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">var <span class="keyword">dir </span>= <span class="keyword">Direction.North</span></span><br><span class="line"><span class="keyword">var </span><span class="keyword">dir2: </span><span class="keyword">Direction</span></span><br><span class="line"><span class="keyword">dir2 </span>= .<span class="keyword">North</span></span><br></pre></td></tr></table></figure>
+<p>如上面第三行所示，对确定类型的枚举变量赋值的时候可以省略枚举的类型名称，又是个挺逗逼的语法糖。</p>
+<p>有Raw Value的枚举可以用<code>.rawValue</code>来获取值，也可以用<code>Direction(rawValue: 0)</code>的方式来构造。</p>
+<p>###</p>
+<h2 id="流程控制"><a href="#流程控制" class="headerlink" title="流程控制"></a>流程控制</h2><h3 id="for循环"><a href="#for循环" class="headerlink" title="for循环"></a>for循环</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> <span class="keyword">var</span> i = <span class="number">0</span>; i &lt; <span class="built_in">len</span>; i++ &#123;</span><br><span class="line">    <span class="comment">// 传统for循环</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">for</span></span> i in <span class="number">1.</span>.&lt;n &#123;</span><br><span class="line">   <span class="comment">// for-in循环，功能比较丰富，可以遍历数组、集合、字典</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="while循环"><a href="#while循环" class="headerlink" title="while循环"></a>while循环</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> condition &#123;</span><br><span class="line">    <span class="regexp">//</span> 普通<span class="keyword">while</span>循环</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">repeat &#123;</span><br><span class="line">    <span class="regexp">//</span> 相当于<span class="keyword">do</span>-<span class="keyword">while</span></span><br><span class="line">&#125; <span class="keyword">while</span> condition</span><br></pre></td></tr></table></figure>
+<h3 id="if"><a href="#if" class="headerlink" title="if"></a>if</h3><p>好像没什么好说的……</p>
+<p>类似C#，Swift里的condition必须是<code>Bool</code>表达式，不会像C和JS里那样隐式转换，因此<code>while n--</code>或者<code>if obj</code>就是不行的了。</p>
+<h3 id="switch"><a href="#switch" class="headerlink" title="switch"></a>switch</h3><p><strong>默认不fallthrough</strong>，但是保留了<code>break</code>来满足强迫症患者的需要（其实还是有点儿用的，Swift里的<code>case</code>分支内容不允许为空，所以可以写个<code>break</code>来占位置）。</p>
+<p>类似Go，<code>switch</code>的条件可以是区间：</p>
+<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">switch</span> (n) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">1</span> ..&lt; <span class="number">5</span>:</span><br><span class="line">        <span class="comment">// xxx</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>switch</code>一个枚举的时候，也可以省略枚举类型名：</p>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">switch</span> dir &#123;</span><br><span class="line">    <span class="keyword">case</span> .North:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">"running to north"</span>)</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">"unknown"</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>switch</code>一个元组的时候，可以有一些看起来像模式匹配的语法糖，如：</p>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">switch</span> <span class="built_in">point</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> (<span class="number">0</span>, <span class="number">0</span>):</span><br><span class="line">        <span class="comment">// 精确匹配</span></span><br><span class="line">    <span class="keyword">case</span> (_, <span class="number">0</span>):</span><br><span class="line">        <span class="comment">// discard其中某个元素</span></span><br><span class="line">    <span class="keyword">case</span> (<span class="number">-2.</span>.<span class="number">.2</span>, <span class="number">-2.</span>.<span class="number">.2</span>):</span><br><span class="line">        <span class="comment">// 对其元素使用区间条件</span></span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        <span class="comment">// 默认</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当需要用到元素值的时候又可以用类似解构的语法了，Swift里称为<em>值绑定（Value Binding）</em>：</p>
+<figure class="highlight ceylon"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">switch</span> point &#123;</span><br><span class="line">    <span class="keyword">case</span> (<span class="keyword">let</span> x, <span class="number">0</span>):</span><br><span class="line">        <span class="comment">// 这里可以用x</span></span><br><span class="line">    <span class="keyword">case</span> (<span class="number">0</span>, <span class="keyword">let</span> y):</span><br><span class="line">        <span class="comment">// 这里可以用y</span></span><br><span class="line">    <span class="keyword">case</span> <span class="keyword">let</span> (x, y):</span><br><span class="line">        <span class="comment">// 呵呵</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后还支持一个<code>where</code>从句，看起来也挺像模式匹配：</p>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">switch</span> <span class="built_in">point</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">case</span> <span class="title">let</span> <span class="params">(x, y)</span> where x </span>== y:</span><br><span class="line">        <span class="comment">// 哦</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后，用<code>fallthrough</code>可以显式fallthrough。</p>
+<h3 id="guard"><a href="#guard" class="headerlink" title="guard"></a>guard</h3><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">guard</span> <span class="keyword">let</span> name = person[<span class="string">"name"</span>] <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>满足条件则继续执行，否则执行<code>else</code>，有<code>if-else</code>还搞这个语法糖，还是有点儿卵用的。比如你可以写成</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">guard condition <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>而不需要写成</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> !condition &#123;</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>照照镜子，有没有觉得变帅了？</p>
+<h3 id="continue-break"><a href="#continue-break" class="headerlink" title="continue/break"></a>continue/break</h3><p>可以通过标签来跳出指定层次的循环，像JavaScript那样，然而___________。</p>
+<h1 id="to-be-continued"><a href="#to-be-continued" class="headerlink" title="to be continued"></a>to be continued</h1><p>今天先到这儿吧…………下一篇开始函数和闭包。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

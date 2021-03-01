@@ -1,0 +1,254 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>一个eval引发的血案 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="昨天碰到一个线上问题，一个页面在一般的情况下加载执行，它的交互功能是正常的，但使用异步方式加载它的内容进来塞页面里，交互功能就丢掉了。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="一个eval引发的血案">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2014-06-25T03:23:12.000Z"><a href="/2014/06/25/an-eval-cataclysm/">Jun 25 2014</a></time>
+      
+      
+  
+    <h1 class="title">一个eval引发的血案</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>昨天碰到一个线上问题，一个页面在一般的情况下加载执行，它的交互功能是正常的，但使用异步方式加载它的内容进来塞页面里，交互功能就丢掉了。</p>
+<a id="more"></a>
+<p>同步加载的情况就不说了，先介绍下异步的加载情况。</p>
+<p>以异步方式请求同一个页面，带上特殊参数的时候，服务端会依据一些页面中埋的注释当做定界符，把页面拆成小块小块的，比如头部一块，胸部一块（←_←听起来怪怪的），<del>腿部</del>页脚一块。变成“半结构化数据”，其中每一块都是HTML片段，我们出问题的那一段就管叫<code>body</code>吧。</p>
+<p>由于<code>body</code>里夹杂了一些JavaScript，又由于一些复杂的历史原因<sup>1</sup>，在异步拿到这些半结构化数据之后，需要将<code>body</code>里的<code>&lt;script&gt;</code>提取出来妥善处理之后依次执行。</p>
+<p>在大多数情况下这个程序虽然看起来很trick，但是好赖运行得不错。可昨天突然遇到一个BUG，就是某个页面里的<code>body</code>在异步加载的方式下，交互功能就没了。首先可以用脚趾头确定这肯定是JS执行的问题，然后看了下这个页面的<code>body</code>内容，发现它里面有三段<code>&lt;script&gt;</code>，单步执行进去看，在异步的情况下都匹配出来了，也都执行了，但交互没生效。而将其中某一段摘出来扔控制台里再执行一遍，交互就回来了。</p>
+<p>仔细观察这段问题代码，它定义了一个<strong>全局函数</strong><sup>2</sup>，定义就定义吧，这么多页面也没能一个个code review，且行且珍惜。</p>
+<hr>
+<p>以上就是故事背景了（比尼玛正文还长）。那为什么全局函数在这里就失效了呢？究其原因是因为<code>eval</code>。</p>
+<p>在上面提到的那个加载器里面，会将匹配出来的<code>&lt;script&gt;</code>用<code>eval</code>方式执行的，<strong><code>eval</code>是局部作用域、局部作用域、作用域、域</strong>——为了凸显本文的核心问题，我将这句话的混响调长了一点点。而且这还不是问题的全部，更不可思议的是这也有<strong>浏览器兼容性问题</strong><sup>3</sup>，具体内容太复杂了，我就不搬运了，大家搜一下就行。</p>
+<p>书接上回，在那个交互里，点击的时候会调用它之前定义的那个全局函数，如果正确执行的话那就刚刚好。而现在<code>eval</code>了之后，那个全局函数自然没被定义到全局上面，就挂了。神奇的是这段代码<del>很良心</del>的加了<code>try/catch</code>，于是也没看到控制台里有报错。</p>
+<p>事已至此，只要倒霉加载器改用<strong>“全局eval”</strong>就能解决这个问题了（喂喂不是应该让做那个页面的人重构代码吗？），具体的方式我也不搬了，大家自己搜吧。</p>
+<hr>
+<h3 id="附注"><a href="#附注" class="headerlink" title="附注"></a>附注</h3><ol>
+<li>f*cking historical reasons</li>
+<li>f*cking global function</li>
+<li>f*cking browser compatibility problems</li>
+</ol>
+<h3 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h3><ol>
+<li><a href="http://blog.csdn.net/cuixiping/article/details/4823119" target="_blank" rel="noopener">让eval()全局作用域执行的方法深入研究(javascript)</a></li>
+<li><a href="http://www.cnblogs.com/rubylouvre/archive/2010/04/09/1708419.html" target="_blank" rel="noopener">globalEval函数</a></li>
+</ol>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

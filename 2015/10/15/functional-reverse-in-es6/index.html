@@ -1,0 +1,263 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>ES6实现递归reverse函数的新装逼技巧 | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="今天翻到@SYSU_Joyee妹子的一篇博客逆转序列的递归/尾递归（+destructuring assignment）实现（JavaScript + ES6），瞬间觉得很好玩，然后就玩上瘾了……">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="ES6实现递归reverse函数的新装逼技巧">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-10-15T15:33:33.000Z"><a href="/2015/10/15/functional-reverse-in-es6/">Oct 15 2015</a></time>
+      
+      
+  
+    <h1 class="title">ES6实现递归reverse函数的新装逼技巧</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>今天翻到<a href="http://weibo.com/joyeecheung" target="_blank" rel="noopener">@SYSU_Joyee</a>妹子的一篇博客<a href="http://www.cnblogs.com/joyeecheung/p/4216058.html" target="_blank" rel="noopener">逆转序列的递归/尾递归（+destructuring assignment）实现（JavaScript + ES6）</a>，瞬间觉得很好玩，然后就玩上瘾了……</p>
+<a id="more"></a>
+<p>在<a href="/2015/10/14/curry-function-in-es6/">上一篇装逼教程</a>中介绍了ES6里的箭头函数，用箭头函数可以把代码写的非常Functional，但是有一个非常严重的问题：</p>
+<p><strong>所有的箭头函数都是匿名函数，所以怎么递归！！！</strong>，事实上在JS里面，函数体内是可以访问函数名本身的，函数表达式<code>function f() {}</code>也能获得一个只有自身才能访问的函数名<code>f</code>，甚至当直接把箭头函数定义成一个变量时，其内部也可以访问到，但是那个就不好玩了，所以我们还是先严格的限制：<strong>所有函数表达式和箭头函数都是匿名的，只有函数声明可以有名字。</strong></p>
+<p>这个问题实在太经典了，因为有一个非常著名的东西就是专门用来干这个的，它就是<a href="http://www.zhihu.com/question/21099081/answer/18830200" target="_blank" rel="noopener">Y组合子</a>（这篇文章本来是在GitHub上看到的，不过找不到那个地址了……）</p>
+<p>首先我们装个逼，用ES6箭头函数实现一个Y组合子：</p>
+<figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">const Y = f =&gt;</span><br><span class="line">    (<span class="name">x</span> =&gt; f(<span class="name">y</span> =&gt; x(<span class="name">x</span>)(<span class="name">y</span>)))</span><br><span class="line">    (<span class="name">x</span> =&gt; f(<span class="name">y</span> =&gt; x(<span class="name">x</span>)(<span class="name">y</span>)))</span><br></pre></td></tr></table></figure>
+<p>为什么用<code>const</code>不用<code>var</code>或者<code>let</code>呢？因为我们要装逼啊，要immutable（扯远了）……<img src="/uploads/public/AC-1.png" alt></p>
+<p>关于Y组合子我就不多说了，因为我理解也不透彻，暂时还只是搬运。</p>
+<p>接下来就可以用箭头函数写递归了，比如说阶乘：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> factorial = Y(</span><br><span class="line">    f =&gt; <span class="function"><span class="params">n</span> =&gt;</span> n == <span class="number">0</span> ? <span class="number">1</span> : n * f(n - <span class="number">1</span>)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>无<code>function</code>，无<code>return</code>，看起来是不是很Functional啊，这货一点也不像JS了嘛。<img src="/uploads/public/AC-25.png" alt></p>
+<p>回到原来的话题，结合解构和spread语法，可以把<code>reverse</code>函数实现得相当像Haskell了：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> reverse = Y(</span><br><span class="line">   rev =&gt; <span class="function">(<span class="params">[x, ...xs]</span>) =&gt;</span></span><br><span class="line">       x === <span class="literal">undefined</span> ?</span><br><span class="line">       [] :</span><br><span class="line">       [...rev(xs), x]</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>注意以上代码目前应该只有Firefox才能运行的，因为V8似乎不支持参数解构（即使加了<code>--harmony</code>）。</p>
+<p>然而对于妹子博客里的尾递归版本，则又有新的难度了，因为我们所实现的“穷人的Y组合子”只支持单参函数，而尾递归版本是需要两个参数的，咋搞？</p>
+<p>呵呵呵呵，作为Functional Programming装逼犯，多参函数完全是异端，必须烧死啊，所以两个参数的函数就写成curry形式，函数叠罗汉。</p>
+<p>这个转换怎么做呢？先用最经典的多参递归函数：<strong>辗转相除求最大公约数</strong>来举个例子：</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">gcd</span><span class="params">(a, b)</span> &#123;</span></span><br><span class="line">    <span class="keyword">if</span> (b == <span class="number">0</span>) <span class="keyword">return</span> a</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">gcd</span>(b, a <span class="comment">% b)</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>转换成箭头函数的话大概是这样</p>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcd = <span class="comment">(a, b)</span> =&gt; b == <span class="number">0</span> ? a : gcd<span class="comment">(b, a % b)</span></span><br></pre></td></tr></table></figure>
+<p>由于只让使用一个参数，需要改成curry形式：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcd = <span class="function"><span class="params">a</span> =&gt;</span> <span class="function"><span class="params">b</span> =&gt;</span> b == <span class="number">0</span> ? a : gcd(b)(a % b)</span><br></pre></td></tr></table></figure>
+<p>这样这个<code>gcd</code>就是一个单参的curry函数了，然后用上面使用Y组合子构造递归匿名函数的方式</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Y(</span><br><span class="line">    _gcd =&gt; <span class="function"><span class="params">a</span> =&gt;</span> <span class="function"><span class="params">b</span> =&gt;</span></span><br><span class="line">        b == <span class="number">0</span> ? a : _gcd(b)(a % b)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>这样构造出来的是一个单参函数<code>gcd(a)(b)</code>，然后再裹一层，把它铺开成双参函数</p>
+<figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">const gcd = (<span class="name">a</span>, b) =&gt; Y(</span><br><span class="line">    _gcd =&gt; a =&gt; b =&gt;</span><br><span class="line">        b == <span class="number">0</span> ? a : _gcd(<span class="name">b</span>)(<span class="name">a</span> % b)</span><br><span class="line">)(<span class="name">a</span>)(<span class="name">b</span>)</span><br></pre></td></tr></table></figure>
+<p>这样就成功构造出了<code>gcd(a, b)</code><img src="/uploads/public/AC-1.png" alt></p>
+<p>然后如法炮制，即可构造出尾递归版本的<code>reverse</code>函数：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> tailReverse = <span class="function"><span class="params">seq</span> =&gt;</span> Y(</span><br><span class="line">    rev =&gt; <span class="function">(<span class="params">[x, ...xs]</span>) =&gt;</span> <span class="function"><span class="params">ret</span> =&gt;</span></span><br><span class="line">        x === <span class="literal">undefined</span> ?</span><br><span class="line">        ret :</span><br><span class="line">        rev(xs)([x, ...ret])</span><br><span class="line">)(seq)([])</span><br></pre></td></tr></table></figure>
+<p>计划通<img src="/uploads/public/AC-49.png" alt></p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/编程/">编程</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>

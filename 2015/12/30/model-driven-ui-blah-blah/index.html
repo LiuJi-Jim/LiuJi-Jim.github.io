@@ -1,0 +1,280 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>扯扯“Model Driven UI” | Jim Liu&#39;s Blog</title>
+  <meta name="author" content="Jim Liu">
+  
+  <meta name="description" content="为什么我认为对于构建应用程序而言，MVVM/React是比jQuery更容易的方式？
+文章比较浅，科普性质，大神们别嫌弃。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="扯扯“Model Driven UI”">
+  <meta property="og:site_name" content="Jim Liu&#39;s Blog">
+
+  
+    <meta property="og:image" content>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jim Liu&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+</html>
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Jim Liu&#39;s Blog</a></h1>
+  <h2><a href="/">Again, Jim Liu&#39;s Blog</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/about">About</a></li>
+    
+    <li><a href="/atom.xml" target="_BLANK">Feed</a></li>
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft">
+      <div id="wrapper"><article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-12-30T07:09:08.000Z"><a href="/2015/12/30/model-driven-ui-blah-blah/">Dec 30 2015</a></time>
+      
+      
+  
+    <h1 class="title">扯扯“Model Driven UI”</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <link rel="stylesheet" href="/css/owl.css"><p>为什么我认为对于构建应用程序而言，MVVM/React是比jQuery更容易的方式？</p>
+<p>文章比较浅，科普性质，大神们别嫌弃。</p>
+<a id="more"></a>
+<h2 id="“传统”方式"><a href="#“传统”方式" class="headerlink" title="“传统”方式"></a>“传统”方式</h2><p>用一种“传统”的思路，我们要更新页面某一个部分的UI，应该这么做：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$.get(<span class="string">'url'</span>, <span class="function"><span class="keyword">function</span><span class="params">(data)</span></span> &#123;</span><br><span class="line">  ui.<span class="built_in">find</span>(<span class="string">'#name'</span>).html(data.name)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>这个例子应该是一个典型的场景</p>
+<ul>
+<li>拉数据</li>
+<li><strong>找元素</strong></li>
+<li>改属性</li>
+</ul>
+<p>为什么核心在于“找元素”呢？由于要尽可能的优化UI的性能，只能做最小更新操作，那么就需要找到发生变化的那个字段所需要的元素，单独对其进行操作。</p>
+<p>所以jQuery的核心就在于<code>query</code>，首当其冲就是它能最快捷的帮我们<code>query</code>出需要的元素来，很好的满足了一个JS库的核心需求。当然它的另一个优势就是它的API设计得太简便了，简直是不会JS都能用，入门成本之低令人发指。</p>
+<h3 id="这么做的问题"><a href="#这么做的问题" class="headerlink" title="这么做的问题"></a>这么做的问题</h3><p>一句话</p>
+<blockquote>
+<p>UI被设计为依赖Model，Model不应该依赖UI。</p>
+</blockquote>
+<p>如果实现成贫血Model层，就会在逻辑代码里面去进行上面的<code>query-update</code>操作，如果是充血Model层那可能就在Model里。不论怎样，这样做都违背了上述依赖关系。</p>
+<p>很简单，当UI发生变化（这种变化在迭代当中非常频繁）的时候，不仅需要修改UI本身，也需要去修改逻辑代码或者Model层，比方说<code>#name</code>这个ID换掉了，得换个选择器；比方说<code>span</code>变成了<code>textbox</code>，得把<code>.html()</code>换成<code>.val()</code>；比方说整个UI层重新换了一套CSS命名规范，或者上了一个className混淆方案，可能让所有的<code>addClass/removeClass/hasClass</code>全瞎；比方说运营需要“重要的事情说三遍”于是同一个字段要被连续展现3次；比方说相册改版，啥没变，惟独从井字格变成轮播图了……</p>
+<p><strong>这些本身应该是UI的事儿——毫无业务逻辑在里面——却需要去改逻辑代码</strong>，依赖关系颠倒过来了，形成了anti-pattern。</p>
+<p>所以现在流行说“单向数据流”，它是对上面所说的依赖关系的一个形象描述。</p>
+<h2 id="Model-Driven-UI"><a href="#Model-Driven-UI" class="headerlink" title="Model Driven UI"></a>Model Driven UI</h2><p>这概念谁说的来着，好像是Polymer。其实在12年的某个项目里，我就在尝试这个方式，当然，举步维艰。</p>
+<h3 id="一个很糙的方式"><a href="#一个很糙的方式" class="headerlink" title="一个很糙的方式"></a>一个很糙的方式</h3><p>当时的主要矛盾是，我们也实现了单向数据流，所有UI操作都调用Business层（相当于Controller）的接口，UI保持对Model的严格只读。但Business层修改完了Model之后，下一步就非常难了，为啥难呢？因为<strong>“Model变了，Drive不起UI来”</strong>。</p>
+<p>如果Model只有一个简单粗暴的<code>change</code>事件，那么UI就倒了八辈子的大霉了，它根本不知道到底变了什么，没法做最小的UI更新，那么性能上基本先Say Goodbye了。</p>
+<p>于是实践上的问题就来了，Business层在修改Model的时候需要如履薄冰地触发一个“合理地小”的事件——不能太大，这样UI大面积做无用的更新；不能太碎，这样UI还需要做一个batch更新机制。<br>这样的结果肯定就是事件的种类会随着use case增多而大幅度增多，而可怕的就是UI必须对这些新增的事件一一作出响应，哪怕它跟之前某一个事件差别相当之小。</p>
+<p>这当中自然也就隐含了Model对UI的间接依赖，逻辑代码需要对UI有比较深入的了解，才会知道怎样去触发一个事件它才会“合理地小”。</p>
+<p>有了batch update，可以把Model的<code>change</code>做到字段级别的CRUD事件了，但UI需要关心的事件就会呈一个数量级的增加。等于原本在逻辑代码里集中更新UI，变为了在UI里（借助batch update）分散更新——事儿没变少，就是换了个人在干。</p>
+<p>至少是解决了一个依赖倒置的问题，UI通过字段来访问Model，通过事件来订阅更新自己，而Model则几乎不会对UI产生直接依赖了，极端一些，Model对于UI是不是DOM都可以不关心了。</p>
+<h3 id="没那么糙的方式"><a href="#没那么糙的方式" class="headerlink" title="没那么糙的方式"></a>没那么糙的方式</h3><p>现在有了MVVM和Virtual-DOM了，batch update也都是标配，Business层可以肆无忌惮的对Model进行任何粒度的CRUD。UI也不需要监听Model上的各种事件了——简单的说来，虽然整个数据流没有变，但是每一个环节都变简单了。</p>
+<p>所以MVVM和Virtual-DOM解决的问题是数据绑定/数据展现吗？是，也不全是。更深究地说，它们解决的问题是帮助UI和Model之间“脏活累活谁来干”的问题——都没人干，于是只能让框架干了。从此以后，</p>
+<blockquote>
+<p>对于Model而言：“老子就管写，你爱读不读。反正我的值是对的，用户看到展现不对那都赖你。”</p>
+</blockquote>
+<blockquote>
+<p>对于UI而言：“老子就歇着，你爱咋样就来弄我两下，但是活儿得好，别让我太累，用户嫌卡那就怪你。”</p>
+</blockquote>
+<p>至于Model如何Drive UI，Angular（脏检查）、React（Virtual-DOM）用的办法是主动的发现Model的变化，然后去推动UI更新；Avalon、Vue基于property getter的做法是被动的等Model发生变化。<br>除了Virtual-DOM以外，都需要对UI进行预处理，解析出一个UI Element -&gt; property之间的依赖关系，知道每一个Element依赖了Model的哪个字段。把这张图反过来，就知道当一个property被修改时，它会影响那些个Element，从而实现最小更新。<br>而Virtual-DOM的最小化patch方案是通过tree-diff计算出来的，基于现代浏览器“老子for循环跑的飞快”的霸气，执行tree-diff的速度很理想。于是就直接不需要构建依赖关系，用起来更简单粗暴；进而在需要的时候有一定的优化空间，可以通过immutable这种方式来快速跳过tree-diff当中的某些环节。<br>所以在精心优化的情况下，Virtual-DOM应该最快的无疑，property getter有更强的适应性，天生就很快，但从外部去优化它很难。<br>React另一个优势是它的启动速度，由于不需要构建依赖关系，甚至是连parse模板都不需要（这一步相当于直接在构建JSX的时候已经做好了），它启动步骤就短多了，夸张地说，直接<code>render</code>就出来了。<br>使用property getter的方案对于Model层有非常微弱的侵入性（相比Knockout那是低多了），使用脏检查和Virtual-DOM对Model层都几乎没有侵入性。<br>当然上面所说的性能差异其实都没有那么大啦……只是因为我自己写过virtual-dom玩具，也看了Vue的源码，一点小结而已。</p>
+<h2 id="理想和现实的差距"><a href="#理想和现实的差距" class="headerlink" title="理想和现实的差距"></a>理想和现实的差距</h2><p>在一个足够复杂的场景下，如果能践行Model与UI的依赖关系，程序的可测性（React还是谁来着，也管它叫Predictable，可预测）就有了一定的保障。</p>
+<p>但是，很多情况下，没有那么理想，比如</p>
+<ul>
+<li>很多Model被展现一次就没事儿了，压根儿就没有动态修改</li>
+<li>很多Model只被在一处展现，因此它动态修改的时候，在UI改和在Model里改，工作量是一样的</li>
+<li>UI的调整并没有那么理想化，无法解释为纯UI的问题，几乎每次调整都涉及到业务逻辑的调整</li>
+<li>无所谓视图逻辑和业务逻辑，我们认为展现形式是业务逻辑的一部分，并不是什么卵的视图逻辑</li>
+</ul>
+<h2 id="个人的感受"><a href="#个人的感受" class="headerlink" title="个人的感受"></a>个人的感受</h2><ul>
+<li>程序怎么写，还得看活儿</li>
+<li>做Web App和做Web Page，取舍还是差别大</li>
+<li>怎么算Web App怎么算Web Page，还得看老板怎么想</li>
+<li>如若无所谓模式，无所谓架构，那一切都是白说，反正<em>It works</em></li>
+<li>面向工资编程，终究还是为了出活儿快、下班早，需求变时别骂娘，早日升职加薪，当上总经理，迎娶白富美，走上人生巅峰</li>
+</ul>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+
+
+</div>
+    </div>
+    <aside id="sidebar" class="alignright">
+  
+<div class="widget about_me">
+  <h3 class="title">ABOUT JIM</h3>
+  <ul class="entry">
+    
+    <li><img width="150" title="avatar" src="/uploads/2012/03/Pig.180x180-150x150.jpg" /></li>
+    
+    
+    <li><a href="/about">刘骥</a></li>
+    
+    <li>微博：<a href="http://weibo.com/jimnox" target="_BLANK">@刘骥-JimLiu</a></li>
+    
+    <li>知乎：<a href="http://www.zhihu.com/people/jimnox" target="_BLANK">@Jim Liu</a></li>
+    
+    <li>旧博客：<a href="http://jimnox.cnblogs.com/" target="_BLANK">博客园</a></li>
+    
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">标签</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/影像/">影像</a><small>2</small></li>
+  
+    <li><a href="/tags/未分类/">未分类</a><small>1</small></li>
+  
+    <li><a href="/tags/生活/">生活</a><small>7</small></li>
+  
+    <li><a href="/tags/站着说话不腰疼/">站着说话不腰疼</a><small>15</small></li>
+  
+    <li><a href="/tags/编程/">编程</a><small>52</small></li>
+  
+    <li><a href="/tags/音乐/">音乐</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">最新文章</h3>
+  <ul class="entry">
+    
+      <li>
+        <a href="/2018/09/11/why-we-need-async-await/">为什么async/await关键字是如此重要</a>
+      </li>
+    
+      <li>
+        <a href="/2018/07/13/the-making-of-h5pal-1/">h5pal是怎样练成的 - 二进制处理篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/21/nas-log-software-summary-and-media-center/">NAS折腾记-软件篇-概述及媒体中心</a>
+      </li>
+    
+      <li>
+        <a href="/2018/06/20/nas-log-hardware-and-system/">NAS折腾记-硬件及系统篇</a>
+      </li>
+    
+      <li>
+        <a href="/2018/02/06/jim-plays-tabi-kaeru/">Jim Plays &lt;旅行青蛙（旅かえる）&gt;</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+  
+
+  
+<div class="widget links">
+  <h3 class="title">链接</h3>
+  <ul class="entry">
+    
+    <li><a href="http://diaorui.net/" target="_BLANK">Dora Blog</a></li>
+    
+    <li><a href="http://etphotos.cn/?from=jimlius_blog" target="_BLANK">相机笔记</a></li>
+    
+    <li><a href="http://licstar.net/?from=jimlius_blog" target="_BLANK">licstar的博客</a></li>
+    
+    <li><a href="http://odinliu.com/?from=jimlius_blog" target="_BLANK">Odin的自我修养</a></li>
+    
+    <li><a href="http://yulijia.net/cn/?from=jimlius_blog" target="_BLANK">Lijia Yu&#39;s Website</a></li>
+    
+    <li><a href="http://www.xperseverance.net/?from=jimlius_blog" target="_BLANK">持之以恒</a></li>
+    
+    <li><a href="http://www.yangshaohang.com/?from=jimlius_blog" target="_BLANK">灵魂屋</a></li>
+    
+    <li><a href="http://code.wileam.com/?from=jimlius_blog" target="_BLANK">Joanna&#39;s coding blog</a></li>
+    
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2021 Jim Liu
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+<div style="display:none;">
+  <script type="text/javascript">
+  var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+  document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F747d6706c57a3ead8dc1f78ce3e72866' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+</div>
+</body>
+</html>
