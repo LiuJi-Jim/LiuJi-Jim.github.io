@@ -16,14 +16,14 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/about/index.html</loc>
+    <loc>https://jimliu.net/feedback/index.html</loc>
     
-    <lastmod>2021-03-01T03:40:44.724Z</lastmod>
+    <lastmod>2021-03-01T03:40:44.725Z</lastmod>
     
   </url>
   
   <url>
-    <loc>https://jimliu.net/feedback/index.html</loc>
+    <loc>https://jimliu.net/about/index.html</loc>
     
     <lastmod>2021-03-01T03:40:44.724Z</lastmod>
     
@@ -44,14 +44,28 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2012/07/02/%E6%88%91%E5%9C%A8w3ctech-2012-mobile%E4%B8%93%E9%A2%98%E4%BC%9A%E8%AE%AE%E4%B8%8A%E7%9A%84%E5%88%86%E4%BA%AB/</loc>
+    <loc>https://jimliu.net/2013/09/08/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E9%9D%99%E6%80%81%E5%8D%9A%E5%AE%A2/</loc>
     
-    <lastmod>2021-03-01T03:40:44.718Z</lastmod>
+    <lastmod>2021-03-01T03:40:44.719Z</lastmod>
     
   </url>
   
   <url>
-    <loc>https://jimliu.net/2013/09/08/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E9%9D%99%E6%80%81%E5%8D%9A%E5%AE%A2/</loc>
+    <loc>https://jimliu.net/2012/06/02/%E6%88%91%E7%9C%BC%E4%B8%AD%E9%82%A3%E4%BA%9B%EF%BC%88%E5%9B%A0%E4%B8%BA%E6%BB%A5%E7%94%A8%EF%BC%89%E8%80%8C%E8%A2%AB%E6%AF%81%E6%8E%89%E7%9A%84%E8%AD%A6%E5%8F%A5/</loc>
+    
+    <lastmod>2021-03-01T03:40:44.719Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://jimliu.net/2012/07/02/%E6%88%91%E5%9C%A8w3ctech-2012-mobile%E4%B8%93%E9%A2%98%E4%BC%9A%E8%AE%AE%E4%B8%8A%E7%9A%84%E5%88%86%E4%BA%AB/</loc>
+    
+    <lastmod>2021-03-01T03:40:44.719Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://jimliu.net/2012/06/04/%E4%BC%AA%E8%BD%AC%E8%BD%BD-gif%E9%80%9F%E5%BA%A6%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%84%BF/</loc>
     
     <lastmod>2021-03-01T03:40:44.718Z</lastmod>
     
@@ -65,21 +79,21 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2012/06/04/%E4%BC%AA%E8%BD%AC%E8%BD%BD-gif%E9%80%9F%E5%BA%A6%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%84%BF/</loc>
+    <loc>https://jimliu.net/2012/03/15/%E4%B9%8B%E5%89%8D%E7%9A%84%E5%8D%9A%E5%AE%A2header%E7%94%A8%E7%9A%84%E7%85%A7%E7%89%87/</loc>
     
     <lastmod>2021-03-01T03:40:44.718Z</lastmod>
     
   </url>
   
   <url>
-    <loc>https://jimliu.net/2012/06/02/%E6%88%91%E7%9C%BC%E4%B8%AD%E9%82%A3%E4%BA%9B%EF%BC%88%E5%9B%A0%E4%B8%BA%E6%BB%A5%E7%94%A8%EF%BC%89%E8%80%8C%E8%A2%AB%E6%AF%81%E6%8E%89%E7%9A%84%E8%AD%A6%E5%8F%A5/</loc>
+    <loc>https://jimliu.net/2013/11/20/use-hexo-on-bae/</loc>
     
-    <lastmod>2021-03-01T03:40:44.718Z</lastmod>
+    <lastmod>2021-03-01T03:40:44.717Z</lastmod>
     
   </url>
   
   <url>
-    <loc>https://jimliu.net/2012/09/25/%E3%80%8A%E9%BB%91%E5%AE%A2%E4%B8%8E%E7%94%BB%E5%AE%B6%E3%80%8B-%E6%96%87%E6%91%98/</loc>
+    <loc>https://jimliu.net/2013/11/20/use-solarized-dircolors/</loc>
     
     <lastmod>2021-03-01T03:40:44.717Z</lastmod>
     
@@ -93,28 +107,21 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2012/03/15/%E4%B9%8B%E5%89%8D%E7%9A%84%E5%8D%9A%E5%AE%A2header%E7%94%A8%E7%9A%84%E7%85%A7%E7%89%87/</loc>
+    <loc>https://jimliu.net/2012/09/25/%E3%80%8A%E9%BB%91%E5%AE%A2%E4%B8%8E%E7%94%BB%E5%AE%B6%E3%80%8B-%E6%96%87%E6%91%98/</loc>
     
     <lastmod>2021-03-01T03:40:44.717Z</lastmod>
     
   </url>
   
   <url>
-    <loc>https://jimliu.net/2013/11/20/use-solarized-dircolors/</loc>
-    
-    <lastmod>2021-03-01T03:40:44.716Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://jimliu.net/2013/11/20/use-hexo-on-bae/</loc>
-    
-    <lastmod>2021-03-01T03:40:44.716Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>https://jimliu.net/2015/06/09/trap-in-es6-destructuring-syntax/</loc>
+    
+    <lastmod>2021-03-01T03:40:44.716Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://jimliu.net/2017/09/16/the-making-of-h5pal-0/</loc>
     
     <lastmod>2021-03-01T03:40:44.716Z</lastmod>
     
@@ -128,14 +135,14 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2017/09/16/the-making-of-h5pal-0/</loc>
+    <loc>https://jimliu.net/2014/04/24/talk-about-membership/</loc>
     
     <lastmod>2021-03-01T03:40:44.715Z</lastmod>
     
   </url>
   
   <url>
-    <loc>https://jimliu.net/2014/04/24/talk-about-membership/</loc>
+    <loc>https://jimliu.net/2013/03/02/sony-nex-6%E5%85%A5%E6%89%8B%E5%88%9D%E8%AF%84/</loc>
     
     <lastmod>2021-03-01T03:40:44.715Z</lastmod>
     
@@ -149,7 +156,7 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2014/09/19/something-about-lina-s-quit/</loc>
+    <loc>https://jimliu.net/2015/03/07/something-about-encoding-extra/</loc>
     
     <lastmod>2021-03-01T03:40:44.714Z</lastmod>
     
@@ -163,16 +170,9 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2013/03/02/sony-nex-6%E5%85%A5%E6%89%8B%E5%88%9D%E8%AF%84/</loc>
+    <loc>https://jimliu.net/2014/09/19/something-about-lina-s-quit/</loc>
     
     <lastmod>2021-03-01T03:40:44.714Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://jimliu.net/2015/03/07/something-about-encoding-extra/</loc>
-    
-    <lastmod>2021-03-01T03:40:44.713Z</lastmod>
     
   </url>
   
@@ -193,6 +193,13 @@
   <url>
     <loc>https://jimliu.net/2015/10/22/real-functional-programming-in-javascript-2/</loc>
     
+    <lastmod>2021-03-01T03:40:44.713Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://jimliu.net/2018/06/21/nas-log-software-summary-and-media-center/</loc>
+    
     <lastmod>2021-03-01T03:40:44.712Z</lastmod>
     
   </url>
@@ -207,14 +214,7 @@
   <url>
     <loc>https://jimliu.net/2018/06/20/nas-log-hardware-and-system/</loc>
     
-    <lastmod>2021-03-01T03:40:44.711Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://jimliu.net/2018/06/21/nas-log-software-summary-and-media-center/</loc>
-    
-    <lastmod>2021-03-01T03:40:44.711Z</lastmod>
+    <lastmod>2021-03-01T03:40:44.712Z</lastmod>
     
   </url>
   
@@ -228,12 +228,12 @@
   <url>
     <loc>https://jimliu.net/2015/12/30/model-driven-ui-blah-blah/</loc>
     
-    <lastmod>2021-03-01T03:40:44.710Z</lastmod>
+    <lastmod>2021-03-01T03:40:44.711Z</lastmod>
     
   </url>
   
   <url>
-    <loc>https://jimliu.net/2015/07/13/make-a-js-tpl-engine/</loc>
+    <loc>https://jimliu.net/2015/07/27/make-a-js-tpl-engine--code-gen/</loc>
     
     <lastmod>2021-03-01T03:40:44.710Z</lastmod>
     
@@ -249,12 +249,19 @@
   <url>
     <loc>https://jimliu.net/2015/08/02/make-a-js-tpl-engine--features/</loc>
     
-    <lastmod>2021-03-01T03:40:44.709Z</lastmod>
+    <lastmod>2021-03-01T03:40:44.710Z</lastmod>
     
   </url>
   
   <url>
-    <loc>https://jimliu.net/2015/07/27/make-a-js-tpl-engine--code-gen/</loc>
+    <loc>https://jimliu.net/2015/07/13/make-a-js-tpl-engine/</loc>
+    
+    <lastmod>2021-03-01T03:40:44.710Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://jimliu.net/2014/04/26/js-timing-precision/</loc>
     
     <lastmod>2021-03-01T03:40:44.709Z</lastmod>
     
@@ -264,6 +271,20 @@
     <loc>https://jimliu.net/2014/05/13/lru-cache/</loc>
     
     <lastmod>2021-03-01T03:40:44.709Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://jimliu.net/2012/09/07/jim-plays/</loc>
+    
+    <lastmod>2021-03-01T03:40:44.709Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://jimliu.net/2017/11/12/jim-plays-one-summers-day/</loc>
+    
+    <lastmod>2021-03-01T03:40:44.708Z</lastmod>
     
   </url>
   
@@ -282,28 +303,7 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2014/04/26/js-timing-precision/</loc>
-    
-    <lastmod>2021-03-01T03:40:44.708Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://jimliu.net/2012/09/07/jim-plays/</loc>
-    
-    <lastmod>2021-03-01T03:40:44.708Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://jimliu.net/2017/11/12/jim-plays-one-summers-day/</loc>
-    
-    <lastmod>2021-03-01T03:40:44.707Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://jimliu.net/2012/09/27/javascript%E4%B8%AD%E7%9A%84%E5%BC%82%E6%AD%A5%E6%A2%B3%E7%90%86%EF%BC%883%EF%BC%89-%E4%BD%BF%E7%94%A8wind-js/</loc>
+    <loc>https://jimliu.net/2012/05/28/javascript%E4%B8%AD%E7%9A%84%E5%BC%82%E6%AD%A5%E6%A2%B3%E7%90%86%EF%BC%881%EF%BC%89-%E4%BD%BF%E7%94%A8%E6%B6%88%E6%81%AF%E9%A9%B1%E5%8A%A8/</loc>
     
     <lastmod>2021-03-01T03:40:44.707Z</lastmod>
     
@@ -317,9 +317,9 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2012/04/23/javascript%E4%B8%AD%E7%9A%84%E5%BC%82%E6%AD%A5%E6%A2%B3%E7%90%86%EF%BC%880%EF%BC%89/</loc>
+    <loc>https://jimliu.net/2012/09/27/javascript%E4%B8%AD%E7%9A%84%E5%BC%82%E6%AD%A5%E6%A2%B3%E7%90%86%EF%BC%883%EF%BC%89-%E4%BD%BF%E7%94%A8wind-js/</loc>
     
-    <lastmod>2021-03-01T03:40:44.706Z</lastmod>
+    <lastmod>2021-03-01T03:40:44.707Z</lastmod>
     
   </url>
   
@@ -331,9 +331,23 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2012/05/28/javascript%E4%B8%AD%E7%9A%84%E5%BC%82%E6%AD%A5%E6%A2%B3%E7%90%86%EF%BC%881%EF%BC%89-%E4%BD%BF%E7%94%A8%E6%B6%88%E6%81%AF%E9%A9%B1%E5%8A%A8/</loc>
+    <loc>https://jimliu.net/2015/07/20/is-pal-being-worse-and-worse/</loc>
     
     <lastmod>2021-03-01T03:40:44.706Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://jimliu.net/2012/04/23/javascript%E4%B8%AD%E7%9A%84%E5%BC%82%E6%AD%A5%E6%A2%B3%E7%90%86%EF%BC%880%EF%BC%89/</loc>
+    
+    <lastmod>2021-03-01T03:40:44.706Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://jimliu.net/2013/08/31/htc-one-%E5%8D%8A%E6%9C%88%E8%B0%88/</loc>
+    
+    <lastmod>2021-03-01T03:40:44.705Z</lastmod>
     
   </url>
   
@@ -345,14 +359,14 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2015/07/20/is-pal-being-worse-and-worse/</loc>
+    <loc>https://jimliu.net/2013/03/02/ie%E5%AF%B9gif%E5%8A%A8%E7%94%BB%E7%9A%84%E4%B8%80%E4%B8%AAbug/</loc>
     
     <lastmod>2021-03-01T03:40:44.705Z</lastmod>
     
   </url>
   
   <url>
-    <loc>https://jimliu.net/2013/08/31/htc-one-%E5%8D%8A%E6%9C%88%E8%B0%88/</loc>
+    <loc>https://jimliu.net/2012/03/05/hello-world/</loc>
     
     <lastmod>2021-03-01T03:40:44.704Z</lastmod>
     
@@ -366,16 +380,9 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2013/03/02/ie%E5%AF%B9gif%E5%8A%A8%E7%94%BB%E7%9A%84%E4%B8%80%E4%B8%AAbug/</loc>
-    
-    <lastmod>2021-03-01T03:40:44.704Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>https://jimliu.net/2015/09/30/h5pal-release/</loc>
     
-    <lastmod>2021-03-01T03:40:44.703Z</lastmod>
+    <lastmod>2021-03-01T03:40:44.704Z</lastmod>
     
   </url>
   
@@ -387,7 +394,7 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2012/03/05/hello-world/</loc>
+    <loc>https://jimliu.net/2015/11/09/developing-webapp-with-csharp/</loc>
     
     <lastmod>2021-03-01T03:40:44.703Z</lastmod>
     
@@ -396,12 +403,19 @@
   <url>
     <loc>https://jimliu.net/2014/03/16/eyes-on-me/</loc>
     
+    <lastmod>2021-03-01T03:40:44.703Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://jimliu.net/2016/01/15/building-a-pull-to-refresh-demo-with-rxjs/</loc>
+    
     <lastmod>2021-03-01T03:40:44.702Z</lastmod>
     
   </url>
   
   <url>
-    <loc>https://jimliu.net/2015/11/09/developing-webapp-with-csharp/</loc>
+    <loc>https://jimliu.net/2016/06/08/cross-window-communication-over-cordova-in-app-browser/</loc>
     
     <lastmod>2021-03-01T03:40:44.702Z</lastmod>
     
@@ -415,14 +429,7 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2016/06/08/cross-window-communication-over-cordova-in-app-browser/</loc>
-    
-    <lastmod>2021-03-01T03:40:44.701Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://jimliu.net/2016/01/15/building-a-pull-to-refresh-demo-with-rxjs/</loc>
+    <loc>https://jimliu.net/2016/05/20/brief-comments-on-uncharted-4/</loc>
     
     <lastmod>2021-03-01T03:40:44.701Z</lastmod>
     
@@ -436,6 +443,13 @@
   </url>
   
   <url>
+    <loc>https://jimliu.net/2017/02/19/brief-comments-on-some-2016-games/</loc>
+    
+    <lastmod>2021-03-01T03:40:44.701Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://jimliu.net/2015/11/08/brief-comments-on-yakuza-0/</loc>
     
     <lastmod>2021-03-01T03:40:44.701Z</lastmod>
@@ -443,7 +457,14 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2017/02/19/brief-comments-on-some-2016-games/</loc>
+    <loc>https://jimliu.net/2017/03/19/brief-comment-on-some-feb-2017-games/</loc>
+    
+    <lastmod>2021-03-01T03:40:44.700Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://jimliu.net/2015/10/09/beginning-swift-2/</loc>
     
     <lastmod>2021-03-01T03:40:44.700Z</lastmod>
     
@@ -457,13 +478,6 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2017/03/19/brief-comment-on-some-feb-2017-games/</loc>
-    
-    <lastmod>2021-03-01T03:40:44.700Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>https://jimliu.net/2015/10/10/beginning-swift-3/</loc>
     
     <lastmod>2021-03-01T03:40:44.700Z</lastmod>
@@ -471,23 +485,9 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2016/05/20/brief-comments-on-uncharted-4/</loc>
-    
-    <lastmod>2021-03-01T03:40:44.700Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://jimliu.net/2015/10/09/beginning-swift-2/</loc>
-    
-    <lastmod>2021-03-01T03:40:44.699Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>https://jimliu.net/2015/10/08/beginning-swift-1/</loc>
     
-    <lastmod>2021-03-01T03:40:44.699Z</lastmod>
+    <lastmod>2021-03-01T03:40:44.700Z</lastmod>
     
   </url>
   
@@ -508,19 +508,19 @@
   <url>
     <loc>https://jimliu.net/2015/02/07/beginning-go-oop/</loc>
     
-    <lastmod>2021-03-01T03:40:44.698Z</lastmod>
+    <lastmod>2021-03-01T03:40:44.699Z</lastmod>
     
   </url>
   
   <url>
     <loc>https://jimliu.net/2016/11/05/beginning-aspnet-core/</loc>
     
-    <lastmod>2021-03-01T03:40:44.698Z</lastmod>
+    <lastmod>2021-03-01T03:40:44.699Z</lastmod>
     
   </url>
   
   <url>
-    <loc>https://jimliu.net/2015/02/05/angular-vs-react-in-shallow/</loc>
+    <loc>https://jimliu.net/2017/03/31/adventure-of-js-iterators-and-compare-to-observables/</loc>
     
     <lastmod>2021-03-01T03:40:44.698Z</lastmod>
     
@@ -534,14 +534,14 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2017/03/31/adventure-of-js-iterators-and-compare-to-observables/</loc>
+    <loc>https://jimliu.net/2015/02/05/angular-vs-react-in-shallow/</loc>
     
-    <lastmod>2021-03-01T03:40:44.697Z</lastmod>
+    <lastmod>2021-03-01T03:40:44.698Z</lastmod>
     
   </url>
   
   <url>
-    <loc>https://jimliu.net/2017/02/04/a-failed-attemption-to-js-linq/</loc>
+    <loc>https://jimliu.net/2015/09/26/a-brief-look-at-binary-ops-in-js/</loc>
     
     <lastmod>2021-03-01T03:40:44.697Z</lastmod>
     
@@ -555,16 +555,16 @@
   </url>
   
   <url>
-    <loc>https://jimliu.net/2015/09/26/a-brief-look-at-binary-ops-in-js/</loc>
+    <loc>https://jimliu.net/2017/02/04/a-failed-attemption-to-js-linq/</loc>
     
-    <lastmod>2021-03-01T03:40:44.696Z</lastmod>
+    <lastmod>2021-03-01T03:40:44.697Z</lastmod>
     
   </url>
   
   <url>
     <loc>https://jimliu.net/2014/11/28/a-brief-look-at-es6-generator-function/</loc>
     
-    <lastmod>2021-03-01T03:40:44.696Z</lastmod>
+    <lastmod>2021-03-01T03:40:44.697Z</lastmod>
     
   </url>
   
