@@ -27,12 +27,12 @@ category_dir: categories
 code_dir: downloads/code
 i18n_dir: :lang
 skip_render:
-- google8cab9fa7fed4090d.html
-- 404.html
-- shehui/*
-- _temp/*
-- fitness/**/*
-
+  - google8cab9fa7fed4090d.html
+  - 404.html
+  - shehui/*
+  - rencai/*
+  - _temp/*
+  - fitness/**/*
 
 # Writing
 new_post_name: :title.md # File name of new posts
@@ -61,7 +61,7 @@ marked:
   breaks: true
   smartLists: true
   smartypants: true
-  modifyAnchors: ''
+  modifyAnchors: ""
   autolink: true
 
 # Category & Tag
